@@ -1,0 +1,190 @@
+{% extends 'exam/base.html' %}
+{% block title %}Notifications – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-head {
+        background: linear-gradient(135deg, rgba(249,115,22,0.18), rgba(168,85,247,0.18)),
+                    rgba(255,255,255,0.78);
+        backdrop-filter: saturate(180%) blur(18px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 22px;
+        padding: 26px 30px;
+        margin-bottom: 22px;
+    }
+    .page-head h2 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px; }
+    .page-head p { color: var(--text-muted); margin: 0; }
+
+    .notif-controls {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 16px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        box-shadow: 0 6px 20px rgba(2,6,23,0.05);
+    }
+    .filter-btn {
+        background: rgba(255,255,255,0.6);
+        color: #374151;
+        border: 1px solid rgba(226,232,240,0.85);
+        padding: 7px 14px; border-radius: 999px;
+        cursor: pointer; font-size: 0.82rem; font-weight: 600;
+        transition: all 0.2s;
+    }
+    .filter-btn.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: 0 4px 10px rgba(249,115,22,0.35); }
+    .filter-btn:hover { border-color: rgba(249,115,22,0.5); }
+
+    .notification-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-left: 4px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 14px rgba(2,6,23,0.04);
+        display: flex; gap: 14px;
+        transition: all 0.2s;
+    }
+    .notification-card:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(2,6,23,0.08); }
+    .notification-card.unread { background: rgba(255,247,237,0.85); border-left-color: var(--primary-orange); }
+    .notification-card[data-cat="results"] { border-left-color: #10b981; }
+    .notification-card[data-cat="exam"]    { border-left-color: #3b82f6; }
+    .notification-card[data-cat="warning"] { border-left-color: #f59e0b; }
+    .notification-card[data-cat="success"] { border-left-color: #10b981; }
+    .notification-card[data-cat="support"] { border-left-color: #8b5cf6; }
+
+    .notif-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.05rem; flex-shrink: 0;
+    }
+    .notif-icon.results { background: linear-gradient(135deg, #10b981, #059669); }
+    .notif-icon.exam    { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .notif-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .notif-icon.support { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .notif-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+    .notif-icon.info    { background: linear-gradient(135deg, #64748b, #475569); }
+
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-weight: 700; font-size: 0.95rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+    .notif-message { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0; }
+    .notif-meta { display: flex; gap: 14px; align-items: center; margin-top: 8px; font-size: 0.76rem; color: #94a3b8; }
+    .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary-orange); display: inline-block; }
+
+    .notif-actions { display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0; }
+    .notif-actions form { margin: 0; }
+
+    .empty-state {
+        text-align: center; padding: 70px 20px;
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px dashed rgba(148,163,184,0.4);
+        border-radius: 18px;
+    }
+    .empty-state i { font-size: 3.2rem; opacity: 0.35; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h2><i class="bi bi-bell-fill text-primary-orange"></i> Notifications</h2>
+    <p>Stay updated with exam alerts, result announcements & admin updates.</p>
+</div>
+
+<div class="notif-controls">
+    <button class="filter-btn active" data-filter="all">All ({{ total_count }})</button>
+    <button class="filter-btn" data-filter="unread">Unread ({{ unread_count }})</button>
+    <button class="filter-btn" data-filter="results">Results</button>
+    <button class="filter-btn" data-filter="exam">Exams</button>
+    <button class="filter-btn" data-filter="support">Support</button>
+    <button class="filter-btn" data-filter="info">Updates</button>
+    {% if unread_count > 0 %}
+    <form method="post" action="{% url 'notification_mark_all_read' %}" style="margin-left:auto;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'notifications' %}">
+        <button type="submit" class="btn-ghost"><i class="bi bi-check2-all"></i> Mark all as read</button>
+    </form>
+    {% endif %}
+</div>
+
+<div id="notifList">
+{% for n in notifications %}
+<div class="notification-card {% if not n.is_read %}unread{% endif %}" data-cat="{{ n.category }}" data-read="{% if n.is_read %}1{% else %}0{% endif %}">
+    <div class="notif-icon {{ n.category }}">
+        {% if n.category == 'results' %}<i class="bi bi-bar-chart-fill"></i>
+        {% elif n.category == 'exam' %}<i class="bi bi-clipboard-check"></i>
+        {% elif n.category == 'warning' %}<i class="bi bi-exclamation-triangle"></i>
+        {% elif n.category == 'support' %}<i class="bi bi-life-preserver"></i>
+        {% elif n.category == 'success' %}<i class="bi bi-check2-circle"></i>
+        {% else %}<i class="bi bi-info-circle"></i>{% endif %}
+    </div>
+    <div class="notif-body">
+        <p class="notif-title">
+            {% if not n.is_read %}<span class="unread-dot"></span>{% endif %}
+            {{ n.title }}
+        </p>
+        <p class="notif-message">{{ n.message }}</p>
+        <div class="notif-meta">
+            <span><i class="bi bi-clock"></i> {{ n.created_at|timesince }} ago</span>
+            <span class="badge-pill {% if n.category == 'results' or n.category == 'success' %}badge-success{% elif n.category == 'warning' %}badge-warning{% elif n.category == 'exam' %}badge-info{% else %}badge-info{% endif %}">{{ n.get_category_display }}</span>
+        </div>
+    </div>
+    <div class="notif-actions">
+        {% if n.link %}
+        <a href="{{ n.link }}" class="btn-ghost"><i class="bi bi-box-arrow-up-right"></i> Open</a>
+        {% endif %}
+        {% if not n.is_read %}
+        <form method="post" action="{% url 'notification_mark_read' n.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'notifications' %}">
+            <button type="submit" class="btn-ghost" title="Mark as read"><i class="bi bi-check2"></i></button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="empty-state">
+    <i class="bi bi-bell-slash mb-3 d-block"></i>
+    <h5 class="text-secondary mb-1">No notifications yet</h5>
+    <p class="text-muted small mb-0">When admin publishes results or sends updates, they will appear here.</p>
+</div>
+{% endfor %}
+</div>
+
+<div class="empty-state mt-3" id="filterEmpty" style="display:none;">
+    <i class="bi bi-search mb-3 d-block"></i>
+    <h5 class="text-secondary mb-1">No notifications match this filter</h5>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const list = document.getElementById('notifList');
+    if (!list) return;
+    const cards = list.querySelectorAll('.notification-card');
+    const buttons = document.querySelectorAll('.filter-btn');
+    const empty = document.getElementById('filterEmpty');
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const f = btn.dataset.filter;
+        let visible = 0;
+        cards.forEach(c => {
+            let show = false;
+            if (f === 'all') show = true;
+            else if (f === 'unread') show = c.dataset.read === '0';
+            else show = c.dataset.cat === f;
+            c.style.display = show ? 'flex' : 'none';
+            if (show) visible++;
+        });
+        empty.style.display = (visible === 0 && cards.length > 0) ? 'block' : 'none';
+    }));
+})();
+</script>
+{% endblock %}

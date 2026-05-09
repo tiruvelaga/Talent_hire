@@ -1,0 +1,60 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Pending Registrations - Admin Portal{% endblock %}
+{% block nav_pending %}active{% endblock %}
+{% block page_title %}Pending Registrations{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span><i class="bi bi-person-plus"></i> Pending Self-Registrations ({{ pendings.count }})</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Reg ID</th>
+                    <th>Mobile</th>
+                    <th>Reason</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pending in pendings %}
+                <tr>
+                    <td><strong>{{ pending.name }}</strong></td>
+                    <td><code>{{ pending.registration_id }}</code></td>
+                    <td>{{ pending.mobile }}</td>
+                    <td class="small text-muted">{{ pending.reason|default:'No reason provided' }}</td>
+                    <td class="small">{{ pending.requested_at|date:"d M, H:i" }}</td>
+                    <td>
+                        <span class="badge {% if pending.status == 'Approved' %}bg-success{% elif pending.status == 'Rejected' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ pending.status }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        {% if pending.status == 'Pending' %}
+                        <form method="POST" class="d-inline" action="{% url 'admin_approve_registration' pending.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form method="POST" class="d-inline" action="{% url 'admin_reject_registration' pending.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No pending registrations.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<a href="{% url 'admin_dashboard' %}" class="btn btn-light mt-3">← Back to Dashboard</a>
+{% endblock %}

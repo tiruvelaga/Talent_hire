@@ -1,0 +1,220 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Exam Settings – {{ exam.name }}{% endblock %}
+{% block nav_set %}active{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- ── Basic Info ────────────────────────────────────────── -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <span>Basic Information</span>
+                </div>
+                <div class="p-4">
+                    <input type="hidden" name="form_type" value="basic_info">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Exam Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ exam.name }}" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control">{{ exam.description }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assigned Candidates <span class="badge bg-primary ms-2">{{ exam.assigned_candidates.count }} selected</span></label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="candidateSearch" class="form-control" placeholder="Search name or Reg ID..." onkeyup="filterCandidates()">
+                                <button type="button" onclick="selectAllCandidates()" class="btn btn-sm btn-outline-primary">All</button>
+                                <button type="button" onclick="clearAllCandidates()" class="btn btn-sm btn-outline-secondary">Clear</button>
+                            </div>
+                            <div id="candidateList" class="border rounded p-2 bg-light" style="height: 220px; overflow-y: auto;">
+                                {% for candidate in candidates %}
+                                <div class="form-check py-1 border-bottom">
+                                    <input class="form-check-input" type="checkbox" name="candidate_ids" 
+                                           value="{{ candidate.id }}" id="cand{{ candidate.id }}" 
+                                           {% if candidate in exam.assigned_candidates.all %}checked{% endif %}>
+                                    <label class="form-check-label small" for="cand{{ candidate.id }}">
+                                        {{ candidate.name }} ({{ candidate.registration_id }})
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text small">Check to assign. Search filters live. Empty = all candidates.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Subjects</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="subjectSearch" class="form-control" placeholder="Filter subjects..." onkeyup="filterSubjects()">
+                                <button type="button" onclick="selectAllSubjects()" class="btn btn-sm btn-outline-primary">All</button>
+                                <button type="button" onclick="clearAllSubjects()" class="btn btn-sm btn-outline-secondary">Clear</button>
+                            </div>
+                            <div id="subjectList" class="border rounded p-2 bg-light" style="height: 180px; overflow-y: auto;">
+                                {% for category in categories %}
+                                <div class="form-check py-1">
+                                    <input class="form-check-input" type="checkbox" name="subject_ids" 
+                                           value="{{ category.id }}" id="sub{{ category.id }}" 
+                                           {% if category in exam.subjects.all %}checked{% endif %}>
+                                    <label class="form-check-label" for="sub{{ category.id }}">{{ category.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if exam.is_active %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold ms-2" for="isActive">Exam is Active (Visible to candidates)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Exam Schedule ────────────────────────────────────────── -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <span>Exam Schedule</span>
+                </div>
+                <div class="p-4">
+                    <input type="hidden" name="form_type" value="duration_schedule">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date & Time</label>
+                            <input type="datetime-local" name="start_time" class="form-control" value="{{ exam.start_time|date:'Y-m-d\TH:i' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date & Time</label>
+                            <input type="datetime-local" name="end_time" class="form-control" value="{{ exam.end_time|date:'Y-m-d\TH:i' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Duration (minutes)</label>
+                            <input type="number" name="duration_minutes" class="form-control" value="{{ exam.duration_minutes }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Max Attempts</label>
+                            <input type="number" name="max_attempts" class="form-control" value="{{ exam.max_attempts|default:1 }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Scoring Rules ────────────────────────────────────────── -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <span>Scoring Rules</span>
+                </div>
+                <div class="p-4">
+                    <input type="hidden" name="form_type" value="scoring_rules">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Passing Percentage (%)</label>
+                            <input type="number" name="passing_percentage" class="form-control" value="{{ exam.passing_percentage|default:50 }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Questions Per Attempt</label>
+                            <input type="number" name="total_questions" class="form-control" value="{{ exam.total_questions }}">
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check form-switch mt-4">
+                                <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" {% if exam.shuffle_questions %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold ms-2" for="shuffleQuestions">Shuffle questions</label>
+                            </div>
+                            <div class="form-check form-switch mt-3">
+                                <input class="form-check-input" type="checkbox" name="negative_marking" id="negativeMarking" {% if exam.negative_marking %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold ms-2" for="negativeMarking">Negative marking</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Display Options ────────────────────────────────────────── -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <span>Display Options</span>
+                </div>
+                <div class="p-4">
+                    <input type="hidden" name="form_type" value="display_options">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-medium">Show correct answers after exam</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_answers" id="showAnswers" {% if exam.show_answers %}checked{% endif %}>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-medium">Show results to candidates</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_results" id="showResults" {% if exam.results_published %}checked{% endif %}>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-medium">Shuffle questions per candidate</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" {% if exam.shuffle_questions %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-5">
+                <button type="submit" class="btn-orange py-2 px-4">
+                    <i class="bi bi-save me-2"></i> Save Settings
+                </button>
+                <a href="{% url 'admin_settings' %}" class="btn btn-light border py-2 px-4 fw-semibold text-secondary" style="border-radius: 8px;">
+                    Back to Exams
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Reuse clean checkbox multi-select JS from creation form (search, All/Clear, counts)
+function filterList(listId, searchId, itemClass = '.form-check') {
+    const term = (document.getElementById(searchId).value || '').toLowerCase().trim();
+    const items = document.querySelectorAll(`#${listId} ${itemClass}`);
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = (!term || text.includes(term)) ? '' : 'none';
+    });
+}
+
+function selectAllVisible(listId) {
+    const items = document.querySelectorAll(`#${listId} .form-check`);
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb && item.style.display !== 'none') cb.checked = true;
+    });
+}
+
+function clearAllVisible(listId) {
+    const items = document.querySelectorAll(`#${listId} .form-check`);
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb) cb.checked = false;
+    });
+}
+
+function filterCandidates() { filterList('candidateList', 'candidateSearch'); }
+function selectAllCandidates() { selectAllVisible('candidateList'); }
+function clearAllCandidates() { clearAllVisible('candidateList'); }
+
+function filterSubjects() { filterList('subjectList', 'subjectSearch'); }
+function selectAllSubjects() { selectAllVisible('subjectList'); }
+function clearAllSubjects() { clearAllVisible('subjectList'); }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial filter if search has value
+});
+</script>
+{% endblock %}

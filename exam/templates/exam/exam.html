@@ -1,0 +1,861 @@
+{% extends 'exam/base.html' %}
+
+{% block title %}Exam – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exam-page {
+        background: #fffbf2;
+        min-height: calc(100vh - 120px);
+    }
+
+    /* ── Top info bar ─────────────────────────────────────────── */
+    .exam-topbar {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        padding: 12px 0;
+        box-shadow: 0 3px 12px rgba(249, 115, 22, 0.25);
+    }
+
+    .exam-topbar .item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.87rem;
+        font-weight: 500;
+    }
+
+    /* ── Two-column layout ─────────────────────────────────────── */
+    .exam-body {
+        display: flex;
+        gap: 24px;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px 20px 80px;
+        align-items: flex-start;
+    }
+
+    /* ── Question panel ────────────────────────────────────────── */
+    .question-panel {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .question-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #fed7aa;
+        animation: fadeQ 0.3s ease-out;
+    }
+
+    @keyframes fadeQ {
+        from {
+            opacity: 0;
+            transform: translateX(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .q-header {
+        background: #ffedd5;
+        padding: 16px 22px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        border-bottom: 1px solid #fed7aa;
+    }
+
+    .q-num {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .q-text {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #1a1a1a;
+        line-height: 1.6;
+        margin-top: 6px;
+    }
+
+    /* ── Options ─────────────────────────────────────────────── */
+    .options-area {
+        padding: 20px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+    }
+
+    .option-input {
+        display: none;
+    }
+
+    .option-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        color: #1e293b;
+        background: #ffffff;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .option-label:hover {
+        border-color: #fb923c;
+        background: #fffdfa;
+        transform: translateX(4px);
+    }
+
+    .option-input:checked+.option-label {
+        border-color: #f97316;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    .opt-badge {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        border: 1px solid #e2e8f0;
+    }
+
+    .option-input:checked+.option-label .opt-badge {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        border-color: transparent;
+    }
+
+    /* ── Prev / Next buttons ─────────────────────────────────── */
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 18px;
+    }
+
+    .btn-nav {
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        border: 2px solid #f97316;
+        background: white;
+        color: #f97316;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+
+    .btn-nav:hover {
+        background: #f97316;
+        color: white;
+    }
+
+    .btn-nav:disabled {
+        border-color: #ddd;
+        color: #bbb;
+        cursor: not-allowed;
+    }
+
+    .q-counter {
+        font-size: 0.83rem;
+        color: #6b7280;
+    }
+
+    /* ── Right sidebar ───────────────────────────────────────── */
+    .exam-sidebar {
+        width: 268px;
+        flex-shrink: 0;
+    }
+
+    /* Timer */
+    .timer-box {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 14px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 2px solid #fed7aa;
+        margin-bottom: 14px;
+    }
+
+    .timer-label {
+        font-size: 0.76rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 10px;
+    }
+
+    .timer-ring {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 8px;
+        background: conic-gradient(#f97316 0deg, #e5e7eb 0deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .timer-ring::after {
+        content: '';
+        position: absolute;
+        width: 78px;
+        height: 78px;
+        background: white;
+        border-radius: 50%;
+    }
+
+    .timer-display {
+        position: relative;
+        z-index: 1;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #f97316;
+    }
+
+    .timer-display.urgent {
+        color: #dc2626;
+    }
+
+    .timer-sub {
+        font-size: 0.76rem;
+        color: #9ca3af;
+    }
+
+    /* Nav grid */
+    .nav-grid-box {
+        background: white;
+        border-radius: 16px;
+        padding: 16px 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 2px solid #fed7aa;
+        margin-bottom: 14px;
+    }
+
+    .nav-grid-title {
+        font-size: 0.76rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 11px;
+    }
+
+    .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+    }
+
+    .nav-btn {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 2px solid #f1f5f9;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        background: #ffffff;
+        color: #64748b;
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-btn:hover {
+        transform: scale(1.2);
+        border-color: #fb923c;
+        z-index: 10;
+    }
+
+    .nav-btn.answered {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+    }
+
+    .nav-btn.active {
+        background: #1e3a8a;
+        color: white;
+        box-shadow: 0 0 0 2px #1e3a8a, 0 0 0 4px rgba(30, 58, 138, 0.25);
+    }
+
+    .nav-btn.marked {
+        background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+        color: white;
+    }
+
+    .legend {
+        margin-top: 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 0.73rem;
+        color: #6b7280;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .legend-dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .ld-grey {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+    }
+
+    .ld-orange {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+    }
+
+    .ld-blue {
+        background: #1e3a8a;
+    }
+
+    /* Submit */
+    .answered-label {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-bottom: 9px;
+    }
+
+    .answered-label strong {
+        color: #f97316;
+        font-size: 0.95rem;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-submit:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* ── Custom Modal ─────────────────────────────────────────── */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .custom-modal {
+        background: white;
+        width: 90%;
+        max-width: 420px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .modal-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        color: #4b5563;
+    }
+
+    .summary-val {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #111827;
+    }
+
+    .modal-footer {
+        padding: 0 24px 24px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-modal {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .btn-confirm {
+        background: #f97316;
+        color: white;
+    }
+
+    .btn-confirm:hover {
+        background: #ea580c;
+    }
+
+    .btn-cancel:hover {
+        background: #e5e7eb;
+    }
+
+    @media(max-width:768px) {
+        .exam-body {
+            flex-direction: column;
+        }
+
+        .exam-sidebar {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Top bar -->
+<div class="exam-topbar">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <a href="{% url 'candidate_dashboard' %}" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 7px; font-size: 0.87rem; font-weight: 500;">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            <div class="col text-center">
+                <div class="item justify-content-center"><i class="bi bi-clipboard-check"></i> Online Assessment</div>
+            </div>
+            <div class="col text-end">
+                <div class="item justify-content-end"><i class="bi bi-exclamation-triangle"></i> Do not refresh</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- THE ACTUAL SUBMIT FORM (hidden, filled by JS before submit) -->
+<form method="POST" action="{% url 'submit_exam' exam.id %}" id="examForm">
+    {% csrf_token %}
+    {# Hidden inputs for each question — JS will set their values #}
+    {% for q in questions %}
+    <input type="hidden" name="q_{{ q.id }}" id="ans_{{ q.id }}" value="">
+    {% endfor %}
+</form>
+
+<section class="exam-page">
+    <div class="exam-body">
+
+        <!-- ── LEFT: One question at a time ──────────────── -->
+        <div class="question-panel">
+            <div class="question-card" id="qCard">
+                <div class="q-header">
+                    <div class="q-num" id="qNum">1</div>
+                    <div class="q-text" id="qText">Loading...</div>
+                </div>
+                <div class="options-area">
+                    <div>
+                        <input type="radio" class="option-input" name="opt" id="optA" value="A"
+                            onchange="pickAnswer('A')">
+                        <label class="option-label" for="optA"><span class="opt-badge">A</span><span
+                                id="txtA">...</span></label>
+                    </div>
+                    <div>
+                        <input type="radio" class="option-input" name="opt" id="optB" value="B"
+                            onchange="pickAnswer('B')">
+                        <label class="option-label" for="optB"><span class="opt-badge">B</span><span
+                                id="txtB">...</span></label>
+                    </div>
+                    <div>
+                        <input type="radio" class="option-input" name="opt" id="optC" value="C"
+                            onchange="pickAnswer('C')">
+                        <label class="option-label" for="optC"><span class="opt-badge">C</span><span
+                                id="txtC">...</span></label>
+                    </div>
+                    <div>
+                        <input type="radio" class="option-input" name="opt" id="optD" value="D"
+                            onchange="pickAnswer('D')">
+                        <label class="option-label" for="optD"><span class="opt-badge">D</span><span
+                                id="txtD">...</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prev / Next -->
+            <div class="nav-buttons">
+                <button class="btn-nav" id="btnPrev" onclick="goTo(cur-1)"><i
+                        class="bi bi-arrow-left me-1"></i>Prev</button>
+                <button class="btn-nav" id="btnMark" onclick="toggleMark()"
+                    style="border-color:#6d28d9; color:#6d28d9;">
+                    <i class="bi bi-bookmark-star me-1"></i><span id="markText">Mark Review</span>
+                </button>
+                <span class="q-counter" id="qCounter">Question 1 of {{ total_questions }}</span>
+                <button class="btn-nav" id="btnNext" onclick="goTo(cur+1)">Next<i
+                        class="bi bi-arrow-right ms-1"></i></button>
+            </div>
+        </div>
+
+        <!-- ── RIGHT: Sidebar ─────────────────────────── -->
+        <div class="exam-sidebar">
+
+            <!-- Timer -->
+            <div class="timer-box">
+                <div class="timer-label"><i class="bi bi-clock me-1"></i> Time Remaining</div>
+                <div class="timer-ring" id="timerRing">
+                    <span class="timer-display" id="timerDisp">10:00</span>
+                </div>
+                <div class="timer-sub" id="timerSub">Stay focused!</div>
+            </div>
+
+            <!-- Question nav grid -->
+            <div class="nav-grid-box">
+                <div class="nav-grid-title"><i class="bi bi-grid me-1"></i> Questions</div>
+                <div class="nav-grid" id="navGrid">
+                    {% for q in questions %}
+                    <button class="nav-btn {% if forloop.first %}active{% endif %}" id="nb{{ forloop.counter0 }}"
+                        onclick="goTo({{ forloop.counter0 }})">{{ forloop.counter }}</button>
+                    {% endfor %}
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot ld-blue"></div> Current
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot ld-purple" style="background:linear-gradient(135deg, #6d28d9, #8b5cf6);">
+                        </div> Marked
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot ld-orange"></div> Answered
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot ld-grey"></div> Not answered
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit area -->
+            <div class="answered-label">
+                <strong id="answeredCnt">0</strong> / {{ total_questions }} answered
+            </div>
+            <button class="btn-submit" id="submitBtn" onclick="confirmSubmit()">
+                <i class="bi bi-send-check me-2"></i>Submit Exam
+            </button>
+
+        </div>
+    </div>
+</section>
+
+<!-- Custom Submit Modal -->
+<div class="modal-overlay" id="submitModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h4><i class="bi bi-file-earmark-check me-2"></i>Exam Summary</h4>
+        </div>
+        <div class="modal-body">
+            <div class="summary-item">
+                <span class="summary-label"><i class="bi bi-check-circle-fill text-success"></i> Answered</span>
+                <span class="summary-val" id="sumAnswered">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label"><i class="bi bi-bookmark-star-fill" style="color: #6d28d9;"></i> Marked for
+                    Review</span>
+                <span class="summary-val" id="sumMarked">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label"><i class="bi bi-dash-circle-fill text-secondary"></i> Unanswered</span>
+                <span class="summary-val text-danger" id="sumUnanswered">0</span>
+            </div>
+            <p class="text-center mt-4 mb-0 text-muted" style="font-size: 0.85rem;">Are you sure you want to submit your
+                exam?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancel" onclick="hideModal()">Review Again</button>
+            <button class="btn-modal btn-confirm" onclick="doSubmit()">Yes, Submit</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ── All question data from Django ───────────────────────────────
+    const QUESTIONS = [
+        {% for q in questions %}
+    { id: {{ q.id }}, text: "{{q.question_text|escapejs}}", a: "{{q.option_a|escapejs}}", b: "{{q.option_b|escapejs}}", c: "{{q.option_c|escapejs}}", d: "{{q.option_d|escapejs}}" } {% if not forloop.last %}, {% endif %}
+    {% endfor %}
+];
+
+    const TOTAL = {{ total_questions }};
+    let cur = 0;          // Current question index (0-based)
+    let answers = {};         // { index: 'A'/'B'/'C'/'D' }
+    let marked = {};         // { index: boolean }
+
+    // ── Render current question ──────────────────────────────────────
+    function render() {
+        const q = QUESTIONS[cur];
+
+        document.getElementById('qNum').textContent = cur + 1;
+        document.getElementById('qText').textContent = q.text;
+        document.getElementById('txtA').textContent = q.a;
+        document.getElementById('txtB').textContent = q.b;
+        document.getElementById('txtC').textContent = q.c;
+        document.getElementById('txtD').textContent = q.d;
+        document.getElementById('qCounter').textContent = `Question ${cur + 1} of ${TOTAL}`;
+
+        // Restore selected answer for this question
+        ['A', 'B', 'C', 'D'].forEach(l => {
+            document.getElementById('opt' + l).checked = (answers[cur] === l);
+        });
+
+        // Prev / Next state
+        document.getElementById('btnPrev').disabled = (cur === 0);
+        document.getElementById('btnNext').disabled = (cur === TOTAL - 1);
+
+        // Update nav buttons
+        for (let i = 0; i < TOTAL; i++) {
+            const btn = document.getElementById('nb' + i);
+            btn.className = 'nav-btn';
+            if (answers[i]) btn.classList.add('answered');
+            if (marked[i]) btn.classList.add('marked');
+            if (i === cur) btn.classList.add('active');
+        }
+
+        // Update Mark button text
+        const markBtn = document.getElementById('btnMark');
+        const markText = document.getElementById('markText');
+        if (marked[cur]) {
+            markBtn.style.background = '#6d28d9';
+            markBtn.style.color = 'white';
+            markText.textContent = 'Unmark Review';
+        } else {
+            markBtn.style.background = 'white';
+            markBtn.style.color = '#6d28d9';
+            markText.textContent = 'Mark Review';
+        }
+
+        // Update answered count
+        document.getElementById('answeredCnt').textContent = Object.keys(answers).length;
+
+        // Animate card
+        const card = document.getElementById('qCard');
+        card.style.animation = 'none';
+        void card.offsetWidth;
+        card.style.animation = 'fadeQ 0.3s ease-out';
+    }
+
+    // ── Navigate to a question ───────────────────────────────────────
+    function goTo(idx) {
+        if (idx < 0 || idx >= TOTAL) return;
+        cur = idx;
+        render();
+    }
+
+    // ── Mark / Unmark current question ──────────────────────────────
+    function toggleMark() {
+        marked[cur] = !marked[cur];
+        render();
+    }
+
+    // ── Save answer when option clicked ─────────────────────────────
+    function pickAnswer(letter) {
+        answers[cur] = letter;
+        // Also write to the hidden form input immediately
+        document.getElementById('ans_' + QUESTIONS[cur].id).value = letter;
+        render();
+    }
+
+    // ── Submit exam ──────────────────────────────────────────────────
+    function doSubmit() {
+        // Make sure all hidden inputs have correct values
+        QUESTIONS.forEach((q, i) => {
+            document.getElementById('ans_' + q.id).value = answers[i] || '';
+        });
+
+        // Disable button to prevent double-click
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+
+        // Submit the form
+        document.getElementById('examForm').submit();
+    }
+
+    // ── Custom Modal Controls ──────────────────────────────────────
+    function confirmSubmit() {
+        const answeredCount = Object.keys(answers).length;
+        const markedCount = Object.values(marked).filter(v => v).length;
+        const unansweredCount = TOTAL - answeredCount;
+
+        document.getElementById('sumAnswered').textContent = answeredCount;
+        document.getElementById('sumMarked').textContent = markedCount;
+        document.getElementById('sumUnanswered').textContent = unansweredCount;
+
+        document.getElementById('submitModal').style.display = 'flex';
+    }
+
+    function hideModal() {
+        document.getElementById('submitModal').style.display = 'none';
+    }
+
+    // ── 10-minute Countdown Timer ────────────────────────────────────
+    let remaining = {{ remaining_secs }};
+    const DURATION = 600;
+
+    function tickTimer() {
+        // Format time
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        const display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        document.getElementById('timerDisp').textContent = display;
+
+        // Rotate conic gradient ring
+        const elapsed = DURATION - remaining;
+        const deg = Math.round((elapsed / DURATION) * 360);
+        const color = remaining <= 60 ? '#dc2626' : '#E65C00';
+        document.getElementById('timerRing').style.background =
+            `conic-gradient(${color} ${deg}deg, #e5e7eb ${deg}deg)`;
+
+        // Warning messages
+        const sub = document.getElementById('timerSub');
+        const disp = document.getElementById('timerDisp');
+        if (remaining <= 60) {
+            sub.textContent = '⚠️ Less than 1 minute!';
+            disp.className = 'timer-display urgent';
+        } else if (remaining <= 180) {
+            sub.textContent = '⚠️ Hurry up!';
+        }
+
+        // Auto submit when time runs out
+        if (remaining <= 0) {
+            sub.textContent = '⏱️ Time up! Submitting...';
+            doSubmit();
+            return;
+        }
+
+        remaining--;
+    }
+
+    setInterval(tickTimer, 1000);
+    tickTimer(); // Run immediately so no 1-sec blank
+
+    // ── Prevent browser back button ──────────────────────────────────
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', () => history.pushState(null, '', location.href));
+
+    // ── Initial render ───────────────────────────────────────────────
+    render();
+</script>
+{% endblock %}

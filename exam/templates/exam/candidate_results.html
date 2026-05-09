@@ -1,0 +1,257 @@
+{% extends 'exam/base.html' %}
+
+{% block title %}My Results – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-header {
+        background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+        color: white;
+        padding: 32px 0;
+        margin-bottom: 32px;
+        border-radius: 16px;
+    }
+
+    .results-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .results-header p {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        margin: 0;
+    }
+
+    .result-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .result-card:hover {
+        box-shadow: 0 10px 25px rgba(249, 115, 22, 0.1);
+        transform: translateY(-2px);
+        border-color: #f97316;
+    }
+
+    .result-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .exam-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .result-date {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .result-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-published {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-held {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .result-score {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .score-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .score-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .score-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #f97316;
+    }
+
+    .result-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .result-time {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .view-result-btn {
+        background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .view-result-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-text {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+
+    .empty-state-subtext {
+        font-size: 0.9rem;
+        color: #94a3b8;
+    }
+
+    @media (max-width: 768px) {
+        .results-header {
+            padding: 24px 0;
+        }
+
+        .results-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .result-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .result-score {
+            gap: 16px;
+        }
+
+        .result-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-header">
+    <div class="container">
+        <h1>My Exam Results</h1>
+        <p>View all your completed exams and results</p>
+    </div>
+</div>
+
+<div class="container">
+    {% if attempts %}
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                {% for attempt in attempts %}
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <div>
+                            <div class="exam-name">{{ attempt.exam.name }}</div>
+                            <div class="result-date">Attempted on {{ attempt.date_taken|date:"d M Y, h:i A" }}</div>
+                        </div>
+                        <div class="result-badge {% if attempt.is_published %}badge-published{% else %}badge-held{% endif %}">
+                            {% if attempt.is_published %}
+                                <i class="bi bi-check-circle-fill"></i>Published
+                            {% else %}
+                                <i class="bi bi-clock-fill"></i>Result Held
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if attempt.is_published %}
+                    <div class="result-score">
+                        <div class="score-item">
+                            <div class="score-label">Score</div>
+                            <div class="score-value">{{ attempt.score }}/{{ attempt.total }}</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-label">Percentage</div>
+                            <div class="score-value">{{ attempt.percentage|floatformat:1 }}%</div>
+                        </div>
+                    </div>
+
+                    <div class="result-meta">
+                        <div class="result-time">
+                            <i class="bi bi-hourglass-split"></i> 
+                            Duration: {{ attempt.exam.duration_minutes|default:"—" }} min
+                        </div>
+                        <a href="{% url 'result' attempt.id %}" class="view-result-btn">
+                            View Details <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div style="padding: 16px 0; color: #64748b;">
+                        <i class="bi bi-info-circle"></i> Your result has been held by the administrator. Please contact support.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">No exam attempts yet</div>
+        <div class="empty-state-subtext">Complete an exam to see your results here</div>
+        <a href="{% url 'candidate_dashboard' %}" class="btn btn-primary mt-4" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); border: none; padding: 10px 24px; border-radius: 8px;">
+            Go to Dashboard
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

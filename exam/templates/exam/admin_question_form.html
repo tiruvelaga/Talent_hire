@@ -1,0 +1,92 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}{{ action }} Question – Admin Portal{% endblock %}
+{% block nav_ques %}active{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-9 col-lg-8">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <span>
+                        {% if action == 'Add' %}
+                            <i class="bi bi-plus-circle me-2"></i>Add New Question
+                        {% else %}
+                            <i class="bi bi-pencil me-2"></i>Edit Question
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-chat-text me-1"></i> Question Text</label>
+                            <textarea name="question_text" class="form-control" placeholder="Type the question here..." required>{{ question.question_text|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Option A</label>
+                                <input type="text" name="option_a" class="form-control"
+                                       value="{{ question.option_a|default:'' }}" placeholder="Option A" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Option B</label>
+                                <input type="text" name="option_b" class="form-control"
+                                       value="{{ question.option_b|default:'' }}" placeholder="Option B" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Option C</label>
+                                <input type="text" name="option_c" class="form-control"
+                                       value="{{ question.option_c|default:'' }}" placeholder="Option C" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Option D</label>
+                                <input type="text" name="option_d" class="form-control"
+                                       value="{{ question.option_d|default:'' }}" placeholder="Option D" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-check-circle me-1"></i> Correct Answer</label>
+                                <select name="correct_answer" class="form-select" required>
+                                    <option value="">-- Select --</option>
+                                    {% for letter in "ABCD" %}
+                                    <option value="{{ letter }}"
+                                        {% if question.correct_answer == letter %}selected{% endif %}>
+                                        Option {{ letter }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-tag me-1"></i> Assign to Exam</label>
+                                <select name="exam_id" class="form-select">
+                                    <option value="">General / No Exam</option>
+                                    {% for exam in exams %}
+                                    <option value="{{ exam.id }}" {% if question.exam_id == exam.id %}selected{% endif %}>
+                                        {{ exam.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn-orange" style="padding:11px 26px;">
+                                <i class="bi bi-check-circle me-1"></i>
+                                {% if action == 'Add' %}Add Question{% else %}Save Changes{% endif %}
+                            </button>
+                            <a href="{% url 'admin_questions' %}" style="padding:11px 20px; border-radius:10px; border:2px solid #e5e7eb; color:#6b7280; font-weight:600; font-size:0.88rem; text-decoration:none;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

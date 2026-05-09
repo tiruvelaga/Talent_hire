@@ -1,0 +1,261 @@
+{% extends 'exam/base.html' %}
+{% block title %}Exam Rules – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rules-header { background: linear-gradient(135deg, #E65C00, #F9A825); color: white; padding: 40px 0; margin-bottom: 40px; }
+    .rules-header h2 { font-size: 2rem; font-weight: 800; margin: 0; }
+    .rules-header p { opacity: 0.9; margin: 6px 0 0; }
+
+    .rule-card { background: white; border-radius: 14px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 5px solid #E65C00; }
+    .rule-card h4 { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+    .rule-card p { margin: 0 0 8px; color: #6b7280; line-height: 1.6; font-size: 0.95rem; }
+    .rule-card ul { margin: 12px 0 0; padding-left: 20px; }
+    .rule-card li { color: #6b7280; margin-bottom: 8px; line-height: 1.5; }
+
+    .accordion-btn { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 10px; padding: 12px 16px; width: 100%; text-align: left; font-weight: 600; color: #E65C00; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; margin-bottom: 12px; }
+    .accordion-btn:hover { background: #F9A825; color: white; }
+    .accordion-content { display: none; background: #fffbf2; border-left: 4px solid #E65C00; padding: 16px; border-radius: 8px; margin-bottom: 12px; }
+    .accordion-content.active { display: block; }
+
+    .important-box { background: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 10px; margin-bottom: 20px; }
+    .important-box h5 { color: #991b1b; font-weight: 700; margin: 0 0 8px; }
+    .important-box p { color: #7f1d1d; margin: 0; font-size: 0.95rem; }
+
+    .tip-box { background: #d1fae5; border-left: 4px solid #059669; padding: 16px; border-radius: 10px; margin-bottom: 20px; }
+    .tip-box h5 { color: #065f46; font-weight: 700; margin: 0 0 8px; }
+    .tip-box p { color: #047857; margin: 0; font-size: 0.95rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-box { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .stat-num { font-size: 2rem; font-weight: 800; color: #E65C00; }
+    .stat-label { font-size: 0.8rem; color: #6b7280; margin-top: 6px; text-transform: uppercase; font-weight: 600; }
+
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #E65C00; text-decoration: none; font-weight: 600; margin-bottom: 20px; transition: all 0.2s; }
+    .back-btn:hover { gap: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Header ────────────────────────────────────────────── -->
+<div class="rules-header">
+    <div class="container">
+        <a href="{% url 'candidate_dashboard' %}" class="back-btn" style="color: rgba(255,255,255,0.9);">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <h2>📋 Exam Rules & Guidelines</h2>
+        <p>Please read all rules carefully before taking the exam</p>
+    </div>
+</div>
+
+<div class="container" style="margin-top: -20px; margin-bottom: 40px;">
+
+    <!-- ── Quick Stats ────────────────────────────────────────– -->
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-num">20</div>
+            <div class="stat-label">Total Questions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">10m</div>
+            <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">50%</div>
+            <div class="stat-label">Passing %</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">1</div>
+            <div class="stat-label">Attempts Allowed</div>
+        </div>
+    </div>
+
+    <!-- ── Important Warnings ────────────────────────────────– -->
+    <div class="important-box">
+        <h5>⚠️ Important</h5>
+        <p>Once you start the exam, you cannot pause or exit. Ensure a stable internet connection and quiet environment before starting.</p>
+    </div>
+
+    <!-- ── General Rules ────────────────────────────────────────– -->
+    <div class="rule-card">
+        <h4><i class="bi bi-list-check" style="color: #E65C00;"></i> General Rules</h4>
+        <ul>
+            <li>This is an online exam. You must have a working computer with internet connectivity.</li>
+            <li>Read each question carefully before answering.</li>
+            <li>You can navigate between questions during the exam.</li>
+            <li>You can mark questions for review and come back to them later.</li>
+            <li>The exam timer will display remaining time. When time expires, answers are auto-submitted.</li>
+            <li>Do not attempt to cheat or use external resources during the exam.</li>
+            <li>All attempts are recorded and monitored.</li>
+        </ul>
+    </div>
+
+    <!-- ── System Requirements ───────────────────────────────── -->
+    <div class="rule-card">
+        <h4><i class="bi bi-gear" style="color: #E65C00;"></i> System Requirements</h4>
+        <ul>
+            <li><strong>Browser:</strong> Chrome (80+), Firefox (75+), Safari (12+), Edge (79+)</li>
+            <li><strong>RAM:</strong> Minimum 2 GB (Recommended 4 GB)</li>
+            <li><strong>Internet:</strong> Stable broadband connection (minimum 2 Mbps)</li>
+            <li><strong>Screen:</strong> Minimum resolution 1024x768</li>
+            <li><strong>Microphone:</strong> Required for system verification (if applicable)</li>
+            <li><strong>Camera:</strong> May be required for identity verification</li>
+        </ul>
+    </div>
+
+    <!-- ── Do's and Don'ts ───────────────────────────────────– -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div class="rule-card" style="border-left-color: #059669; margin-bottom: 0;">
+            <h4 style="color: #059669;"><i class="bi bi-check-circle" style="color: #059669;"></i> Do's</h4>
+            <ul>
+                <li>Read instructions carefully</li>
+                <li>Use a quiet, well-lit room</li>
+                <li>Close unnecessary applications</li>
+                <li>Enable full screen for better focus</li>
+                <li>Keep pen/paper for notes if allowed</li>
+                <li>Have water/coffee nearby</li>
+                <li>Test your mic before exam</li>
+                <li>Start 5 mins before scheduled time</li>
+            </ul>
+        </div>
+
+        <div class="rule-card" style="border-left-color: #dc2626; margin-bottom: 0;">
+            <h4 style="color: #dc2626;"><i class="bi bi-x-circle" style="color: #dc2626;"></i> Don'ts</h4>
+            <ul>
+                <li>Use mobile phones during exam</li>
+                <li>Refer to textbooks or guides</li>
+                <li>Take screenshots of questions</li>
+                <li>Share answers with others</li>
+                <li>Use proxy or automation tools</li>
+                <li>Minimize/switch tabs unnecessarily</li>
+                <li>Eat heavy foods right before</li>
+                <li>Attempt in a noisy environment</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ── Scoring & Results ─────────────────────────────────– -->
+    <div class="rule-card">
+        <h4><i class="bi bi-graph-up" style="color: #E65C00;"></i> Scoring & Results</h4>
+        <ul>
+            <li><strong>Marking Scheme:</strong> Each correct answer = 1 point. Wrong answer = 0 points.</li>
+            <li><strong>Total Marks:</strong> 20 points (20 questions × 1 point)</li>
+            <li><strong>Passing Score:</strong> Minimum 50% (10 out of 20 points)</li>
+            <li><strong>Selection Criteria:</strong> Score ≥ 60% will be marked as "Selected"</li>
+            <li><strong>Result Declaration:</strong> Results will be published within 2-3 business days</li>
+            <li><strong>Answer Key:</strong> Official answer key will be released after all candidates complete the exam</li>
+        </ul>
+    </div>
+
+    <!-- ── Exam Duration & Timing ───────────────────────────– -->
+    <div class="rule-card">
+        <h4><i class="bi bi-hourglass-split" style="color: #E65C00;"></i> Exam Duration & Timing</h4>
+        <ul>
+            <li>Total Duration: 10 minutes (600 seconds)</li>
+            <li>No additional time will be given after time expires</li>
+            <li>Timer shows remaining time in format MM:SS</li>
+            <li>You can submit before time expires</li>
+            <li>Early submission locks the exam permanently</li>
+            <li>System automatically submits answers when time expires</li>
+        </ul>
+    </div>
+
+    <!-- ── Malpractice & Disqualification ────────────────────– -->
+    <div class="rule-card" style="border-left-color: #dc2626;">
+        <h4 style="color: #dc2626;"><i class="bi bi-shield-exclamation" style="color: #dc2626;"></i> Malpractice & Disqualification</h4>
+        <p><strong>The following actions may lead to immediate disqualification:</strong></p>
+        <ul>
+            <li>Attempting to close or minimize the exam window</li>
+            <li>Using mobile phone or external devices</li>
+            <li>Seeking help from others or providing help</li>
+            <li>Using unfair means like looking at answer keys online</li>
+            <li>Taking screenshots or recording the exam</li>
+            <li>Switching tabs more than allowed times</li>
+            <li>Using browser extensions or suspicious tools</li>
+        </ul>
+    </div>
+
+    <!-- ── Frequently Asked Questions ────────────────────────– -->
+    <h4 style="font-weight: 700; margin-top: 40px; margin-bottom: 20px;">❓ Frequently Asked Questions</h4>
+
+    <div>
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            Can I go back to previous questions during the exam?
+        </button>
+        <div class="accordion-content">
+            <p>Yes, you can navigate freely between questions during the exam. You can go back and change your answers until you submit or time expires.</p>
+        </div>
+    </div>
+
+    <div>
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            What if my internet connection drops during the exam?
+        </button>
+        <div class="accordion-content">
+            <p>Your answers are auto-saved every 10 seconds. If your connection drops, you can log back in within 5 minutes and continue from where you left off. After 5 minutes, your current answers will be auto-submitted.</p>
+        </div>
+    </div>
+
+    <div>
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            Can I attempt the exam on a mobile device?
+        </button>
+        <div class="accordion-content">
+            <p>While mobile devices are compatible, we strongly recommend using a desktop or laptop for better experience and full functionality. Some features like screen sharing detection may not work on mobile.</p>
+        </div>
+    </div>
+
+    <div>
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            When will my results be declared?
+        </button>
+        <div class="accordion-content">
+            <p>Results will be declared within 2-3 business days of exam completion. You will receive a notification once results are published. You can view your score and answer key on your dashboard.</p>
+        </div>
+    </div>
+
+    <div>
+        <button class="accordion-btn" onclick="toggleAccordion(this)">
+            Can I retake the exam if I'm not satisfied?
+        </button>
+        <div class="accordion-content">
+            <p>No, you are allowed only 1 attempt for this exam. Make sure to prepare well before attempting. However, there may be other exams available in the future recruitment rounds.</p>
+        </div>
+    </div>
+
+    <!-- ── Tip Box ────────────────────────────────────────────– -->
+    <div class="tip-box" style="margin-top: 40px;">
+        <h5>💡 Pro Tips for Success</h5>
+        <ul style="margin: 0; padding-left: 20px;">
+            <li>Do a system check before the actual exam</li>
+            <li>Practice with similar questions beforehand</li>
+            <li>Read questions twice before answering</li>
+            <li>Skip difficult questions and return later</li>
+            <li>Keep track of time—don't spend too long on one question</li>
+            <li>Review all answers before submitting</li>
+        </ul>
+    </div>
+
+    <!-- ── Action Button ────────────────────────────────────────– -->
+    <div style="text-align: center; margin-top: 40px; margin-bottom: 40px;">
+        <p style="color: #6b7280; margin-bottom: 16px; font-size: 0.95rem;">
+            I have read and understood all exam rules and guidelines
+        </p>
+        <a href="{% url 'candidate_dashboard' %}" class="btn-action">
+            <i class="bi bi-check-circle me-1"></i> I Agree & Go to Dashboard
+        </a>
+    </div>
+
+</div>
+
+<script>
+function toggleAccordion(btn) {
+    const content = btn.nextElementSibling;
+    content.classList.toggle('active');
+    btn.style.background = content.classList.contains('active') ? '#E65C00' : '#fff3e0';
+    btn.style.color = content.classList.contains('active') ? 'white' : '#E65C00';
+}
+</script>
+
+{% endblock %}

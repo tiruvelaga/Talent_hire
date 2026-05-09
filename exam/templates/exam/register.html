@@ -1,0 +1,65 @@
+{% extends 'exam/base.html' %}
+{% block title %}Register for Access – TalentHire{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-xl-6">
+            <div class="card shadow-xl border-0 overflow-hidden" style="border-radius: 24px; background: var(--glass-bg-strong); backdrop-filter: blur(20px);">
+                <!-- Light Orange Header -->
+                <div class="px-5 pt-5 pb-4 text-center" style="background: linear-gradient(135deg, #fb923c, #fcd34d); color: white;">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; background: rgba(255,255,255,0.25); border-radius: 50%;">
+                        <i class="bi bi-person-plus-fill" style="font-size: 2.25rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-1">Request Access</h2>
+                    <p class="opacity-90 mb-0">Admin review &amp; approval required</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <p class="text-muted text-center mb-5">Fill the details below. Your request will be reviewed by the admin team.</p>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-primary-orange"></i></span>
+                                <input type="text" name="name" class="form-control border-start-0" required placeholder="John Doe" style="border-radius: 0 12px 12px 0;">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">Mobile Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-telephone text-primary-orange"></i></span>
+                                <input type="tel" name="mobile" class="form-control border-start-0" required placeholder="9876543210" style="border-radius: 0 12px 12px 0;">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">Desired Registration ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-key text-primary-orange"></i></span>
+                                <input type="text" name="registration_id" class="form-control border-start-0" required placeholder="REG-2026-001" pattern="[A-Za-z0-9-]+" style="border-radius: 0 12px 12px 0;">
+                            </div>
+                            <div class="form-text mt-2 text-primary-orange fw-medium">This will be your unique login ID</div>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label fw-semibold text-dark">Reason for Access <span class="text-muted fw-normal">(optional)</span></label>
+                            <textarea name="reason" class="form-control" rows="3" placeholder="e.g. Applying for the Python Developer role in upcoming exam" style="border-radius: 12px;"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn w-100 py-3 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #fb923c, #fcd34d); border: none; font-size: 1.1rem; border-radius: 14px;">
+                            Submit Registration Request <i class="bi bi-arrow-right-circle ms-2"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-5">
+                        <a href="{% url 'login' %}" class="text-muted text-decoration-none fw-medium">
+                            ← Back to Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends 'exam/base.html' %}
+{% block title %}Welcome – TalentHire Exam Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Override base layout for full-bleed light hero */
+    body > main.container.py-5 { width: 100%; max-width: none !important; margin: 0; padding: 0 !important; flex: 1; }
+    body > footer { display: none !important; }
+    .header { display: none !important; }
+
+    .home-shell {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background:
+            radial-gradient(900px circle at 12% 18%, rgba(249, 115, 22, 0.18), transparent 55%),
+            radial-gradient(800px circle at 92% 82%, rgba(236, 72, 153, 0.12), transparent 55%),
+            radial-gradient(700px circle at 60% 0%, rgba(168, 85, 247, 0.10), transparent 55%),
+            linear-gradient(180deg, #ffffff 0%, #f5f6fb 60%, #fff7ed 100%);
+        display: flex;
+        flex-direction: column;
+        color: #0f172a;
+    }
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: 0;
+        pointer-events: none;
+    }
+    .orb-1 { width: 460px; height: 460px; background: rgba(249,115,22,0.30); top: -100px; right: -120px; }
+    .orb-2 { width: 380px; height: 380px; background: rgba(168,85,247,0.20); bottom: -80px; left: -100px; }
+    .orb-3 { width: 280px; height: 280px; background: rgba(59,130,246,0.14); top: 40%; left: 35%; }
+
+    /* ── Top Navbar ──────────────────────────────────────── */
+    .home-nav {
+        position: relative; z-index: 10;
+        padding: 18px 0;
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: saturate(180%) blur(18px);
+        -webkit-backdrop-filter: saturate(180%) blur(18px);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    }
+    .home-nav .inner {
+        max-width: 1280px; margin: 0 auto;
+        padding: 0 32px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .home-brand {
+        display: flex; align-items: center; gap: 12px;
+        text-decoration: none; color: #0f172a;
+        font-weight: 800; font-size: 1.3rem;
+    }
+    .home-brand .logo-square {
+        width: 38px; height: 38px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 22px rgba(249,115,22,0.35);
+        color: white; font-size: 1.1rem;
+    }
+    .home-nav-tag {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(226,232,240,0.85);
+        border-radius: 999px;
+        color: #475569;
+        font-size: 0.85rem; font-weight: 600;
+    }
+    .home-nav-tag i { color: #16a34a; }
+
+    /* ── Hero Content ────────────────────────────────────── */
+    .home-content {
+        flex: 1; position: relative; z-index: 2;
+        display: flex; align-items: center; justify-content: center;
+        padding: 60px 24px 40px;
+    }
+    .home-inner {
+        text-align: center;
+        max-width: 1200px; width: 100%;
+    }
+
+    .pre-title {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 6px 14px;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(226,232,240,0.9);
+        border-radius: 999px;
+        color: #475569;
+        font-size: 0.78rem; font-weight: 700;
+        margin-bottom: 22px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 14px rgba(15,23,42,0.06);
+    }
+    .pre-title .pulse {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #16a34a;
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    }
+
+    .home-title {
+        font-size: clamp(2.6rem, 5.6vw, 4.2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin: 0 0 16px;
+        color: #0f172a;
+    }
+    .home-title .grad {
+        background: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .home-subtitle {
+        font-size: 1.08rem;
+        color: #64748b;
+        margin: 0 auto 56px;
+        max-width: none;
+        line-height: 1.6;
+        white-space: nowrap;
+    }
+
+    /* ── Login Cards ─────────────────────────────────────── */
+    .login-cards {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 28px;
+        max-width: 980px;
+        margin: 0 auto;
+        align-items: stretch;
+    }
+    .login-card {
+        background: rgba(255,255,255,0.78);
+        backdrop-filter: blur(22px) saturate(180%);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 24px;
+        padding: 42px 36px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex; flex-direction: column;
+        box-shadow:
+            0 20px 50px -10px rgba(15,23,42,0.10),
+            0 4px 12px rgba(15,23,42,0.04);
+    }
+    .login-card::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+        pointer-events: none;
+    }
+    .login-card:hover {
+        transform: translateY(-6px);
+        box-shadow:
+            0 30px 60px -10px rgba(15,23,42,0.14),
+            0 8px 20px rgba(15,23,42,0.06);
+        border-color: rgba(249,115,22,0.30);
+    }
+
+    .card-icon {
+        width: 76px; height: 76px;
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 22px;
+        font-size: 1.95rem;
+        position: relative;
+        flex-shrink: 0;
+    }
+    .card-icon.admin {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: white;
+        box-shadow:
+            0 14px 28px rgba(249,115,22,0.40),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .card-icon.cand {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+        box-shadow:
+            0 14px 28px rgba(251,191,36,0.42),
+            inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .login-card h3 {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 10px;
+        letter-spacing: -0.01em;
+    }
+    .login-card p {
+        font-size: 0.93rem;
+        color: #64748b;
+        line-height: 1.55;
+        margin: 0 auto 28px;
+        max-width: 320px;
+        flex: 1;
+    }
+
+    .btn-card {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 14px 28px;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .btn-card.admin {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        box-shadow:
+            0 8px 22px rgba(249,115,22,0.38),
+            inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .btn-card.admin:hover {
+        background: linear-gradient(135deg, #ea580c, #f97316);
+        transform: translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(249,115,22,0.50),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+        color: white;
+    }
+    .btn-card.cand {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: white;
+        box-shadow:
+            0 8px 22px rgba(249,115,22,0.38),
+            inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .btn-card.cand:hover {
+        background: linear-gradient(135deg, #ea580c, #f97316);
+        transform: translateY(-2px);
+        box-shadow:
+            0 14px 30px rgba(249,115,22,0.50),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+        color: white;
+    }
+
+    .or-divider {
+        display: flex; align-items: center; justify-content: center;
+        position: relative;
+    }
+    .or-divider::before {
+        content: ''; position: absolute;
+        top: 14%; bottom: 14%; left: 50%;
+        width: 1px;
+        background: linear-gradient(180deg, transparent, rgba(15,23,42,0.10), transparent);
+    }
+    .or-pill {
+        position: relative;
+        padding: 8px 14px;
+        background: white;
+        border: 1px solid rgba(226,232,240,0.9);
+        border-radius: 999px;
+        color: #f97316;
+        font-weight: 800; font-size: 0.78rem;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+    }
+
+    /* ── Feature Strip ───────────────────────────────────── */
+    .feature-strip {
+        margin-top: 56px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        max-width: 980px;
+        margin-left: auto; margin-right: auto;
+    }
+    .feature-strip > div {
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 20px;
+        background: rgba(255,255,255,0.65);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(226,232,240,0.85);
+        border-radius: 14px;
+        text-align: left;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .feature-strip > div:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(15,23,42,0.06);
+    }
+    .feature-strip i {
+        font-size: 1.35rem;
+        flex-shrink: 0;
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        background: #fff7ed; color: #f97316;
+    }
+    .feature-strip .ftxt { font-size: 0.85rem; color: #475569; line-height: 1.4; }
+    .feature-strip .ftxt b { color: #0f172a; display: block; font-weight: 700; margin-bottom: 2px; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    .home-foot {
+        position: relative; z-index: 5;
+        padding: 18px 24px;
+        text-align: center;
+        font-size: 0.84rem;
+        color: #64748b;
+        background: rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226,232,240,0.7);
+    }
+    .home-foot i { color: #f97316; }
+
+    @media (max-width: 880px) {
+        .login-cards { grid-template-columns: 1fr; gap: 18px; }
+        .or-divider { padding: 6px 0; }
+        .or-divider::before { display: none; }
+        .home-subtitle { white-space: normal; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-shell">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Navbar -->
+    <nav class="home-nav">
+        <div class="inner">
+            <a href="#" class="home-brand">
+                <div class="logo-square"><i class="bi bi-lightning-charge-fill"></i></div>
+                <span>TalentHire</span>
+            </a>
+            <div class="home-nav-tag">
+                <i class="bi bi-shield-check-fill"></i>
+                <span>Secure Online Exam Portal</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="home-content">
+        <div class="home-inner">
+            <span class="pre-title">
+                <span class="pulse"></span>
+                Bavya Health Services Recruitment
+            </span>
+
+            <h1 class="home-title"><span class="grad">TalentHire</span> Exam Portal</h1>
+            <p class="home-subtitle">
+                A premium online assessment platform for fair, fast and accurate hiring decisions.</p>
+
+            <!-- Login Cards -->
+            <div class="login-cards">
+                <div class="login-card">
+                    <div class="card-icon admin"><i class="bi bi-shield-lock-fill"></i></div>
+                    <h3>Admin Portal</h3>
+                    <p>Manage candidates and questions, schedule exams, publish results and monitor performance.</p>
+                    <a href="/portal/login/" class="btn-card admin">
+                        <i class="bi bi-box-arrow-in-right"></i> Admin Login
+                    </a>
+                </div>
+
+                <div class="or-divider">
+                    <span class="or-pill">OR</span>
+                </div>
+
+                <div class="login-card">
+                    <div class="card-icon cand"><i class="bi bi-person-badge-fill"></i></div>
+                    <h3>Candidate Login</h3>
+                    <p>Sign in with your Registration ID to view active exams, attempt them and check results.</p>
+                    <a href="/login/" class="btn-card cand">
+                        <i class="bi bi-pencil-square"></i> Start Exam
+                    </a>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="home-foot">
+        <i class="bi bi-lightning-charge-fill me-1"></i>
+        TalentHire — Bavya Health Services — Online Recruitment Assessment
+    </footer>
+</div>
+{% endblock %}

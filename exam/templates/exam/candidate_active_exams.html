@@ -1,0 +1,263 @@
+{% extends 'exam/base.html' %}
+{% block title %}Active Exams - TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+    .page-head h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0 0 4px;
+    }
+    .page-head p {
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(226,232,240,0.85);
+        background: rgba(255,255,255,0.72);
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .back-link:hover {
+        color: var(--primary-orange);
+        border-color: rgba(249,115,22,0.35);
+        background: #fff;
+    }
+    .exam-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        -webkit-backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.07);
+        transition: transform 0.22s, box-shadow 0.22s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px rgba(2,6,23,0.12);
+    }
+    .exam-card .top {
+        padding: 20px 22px;
+        background: linear-gradient(135deg, rgba(249,115,22,0.10), rgba(251,146,60,0.04));
+        border-bottom: 1px solid rgba(226,232,240,0.6);
+    }
+    .exam-card .top h3 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin: 0 0 4px;
+    }
+    .exam-card .top p {
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        margin: 0;
+    }
+    .exam-card .meta-grid {
+        padding: 16px 22px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 10px;
+    }
+    .exam-card .meta {
+        background: rgba(248,250,252,0.7);
+        border: 1px solid rgba(226,232,240,0.6);
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+    .exam-card .meta .lbl {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+    .exam-card .meta .val {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+    .exam-card .footer {
+        padding: 14px 22px 20px;
+        margin-top: auto;
+    }
+    .exam-toolbar {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        -webkit-backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 10px 28px rgba(2,6,23,0.06);
+        margin-bottom: 24px;
+    }
+    .toolbar-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(160px, 220px) minmax(170px, 240px) auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+    .field-label {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    .control-wrap {
+        position: relative;
+    }
+    .control-icon {
+        color: var(--text-muted);
+        left: 13px;
+        pointer-events: none;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .exam-control {
+        width: 100%;
+        border: 1px solid rgba(226,232,240,0.9);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.86);
+        color: var(--text-main);
+        font-size: 0.92rem;
+        font-weight: 600;
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+    .control-wrap .exam-control {
+        padding-left: 38px;
+    }
+    .exam-control:focus {
+        border-color: rgba(249,115,22,0.55);
+        box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+        outline: none;
+    }
+    .toolbar-btn {
+        align-items: center;
+        border-radius: 12px;
+        display: inline-flex;
+        font-weight: 800;
+        gap: 7px;
+        justify-content: center;
+        min-height: 44px;
+        padding: 10px 16px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .toolbar-btn.secondary {
+        background: rgba(255,255,255,0.78);
+        border: 1px solid rgba(226,232,240,0.9);
+        color: var(--text-main);
+    }
+    .toolbar-btn.secondary:hover {
+        color: var(--primary-orange);
+        border-color: rgba(249,115,22,0.35);
+        background: #fff;
+    }
+    .empty-card {
+        text-align: center;
+        padding: 60px 24px;
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px dashed rgba(148,163,184,0.4);
+        border-radius: 20px;
+    }
+    .empty-card i { font-size: 3.4rem; opacity: 0.35; }
+    @media (max-width: 1100px) {
+        .toolbar-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (max-width: 640px) {
+        .page-head { align-items: flex-start; flex-direction: column; }
+        .toolbar-grid { grid-template-columns: 1fr; }
+        .toolbar-btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h2>All Active Exams</h2>
+        <p>{{ active_exam_count }} active exam{{ active_exam_count|pluralize }} available.</p>
+    </div>
+    <a href="{% url 'candidate_dashboard' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+</div>
+
+<form method="get" class="exam-toolbar">
+    <div class="toolbar-grid">
+        <div>
+            <label class="field-label" for="examSearch">Search</label>
+            <div class="control-wrap">
+                <i class="bi bi-search control-icon"></i>
+                <input type="search" id="examSearch" name="q" class="exam-control" value="{{ search_query }}" placeholder="Exam name or description">
+            </div>
+        </div>
+        <div>
+            <label class="field-label" for="timeFilter">Filter</label>
+            <select id="timeFilter" name="time_filter" class="exam-control">
+                <option value="all" {% if time_filter == 'all' %}selected{% endif %}>All active</option>
+                <option value="open" {% if time_filter == 'open' %}selected{% endif %}>Open now</option>
+                <option value="scheduled" {% if time_filter == 'scheduled' %}selected{% endif %}>Upcoming</option>
+                <option value="no_end" {% if time_filter == 'no_end' %}selected{% endif %}>No end date</option>
+            </select>
+        </div>
+        <div>
+            <label class="field-label" for="sortBy">Sort</label>
+            <select id="sortBy" name="sort" class="exam-control">
+                <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>Latest first</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest first</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name Z-A</option>
+                <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Shortest duration</option>
+                <option value="duration_desc" {% if sort_by == 'duration_desc' %}selected{% endif %}>Longest duration</option>
+                <option value="passing_desc" {% if sort_by == 'passing_desc' %}selected{% endif %}>Highest passing</option>
+                <option value="passing" {% if sort_by == 'passing' %}selected{% endif %}>Lowest passing</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-primary-orange toolbar-btn">
+            <i class="bi bi-funnel"></i> Apply
+        </button>
+        <a href="{% url 'candidate_active_exams' %}" class="toolbar-btn secondary">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </a>
+    </div>
+</form>
+
+<div class="row g-4 mb-5">
+    {% for exam in active_exams %}
+    <div class="col-md-6 col-lg-4">
+        {% include 'exam/partials/candidate_exam_card.html' %}
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-card">
+            <i class="bi bi-calendar-x mb-3 d-block"></i>
+            <h5 class="text-secondary mb-1">No active exams available</h5>
+            <p class="text-muted small mb-0">Please check back later or contact support.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

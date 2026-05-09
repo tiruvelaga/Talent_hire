@@ -1,0 +1,486 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}{{ exam.name }} – Admin Portal{% endblock %}
+{% block nav_set %}active{% endblock %}
+{% block page_title %}Exam Detail{% endblock %}
+
+{% block content %}
+
+<!-- ── Breadcrumb ───────────────────────────────────────── -->
+<div class="mb-3">
+    <a href="{% url 'admin_settings' %}" class="text-secondary text-decoration-none small fw-medium">
+        <i class="bi bi-arrow-left"></i> Back to All Exams
+    </a>
+</div>
+
+<!-- ── Exam Header ──────────────────────────────────────── -->
+<div class="admin-card mb-4">
+    <div class="p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-3 mb-1">
+                    <h3 class="fw-bold mb-0">{{ exam.name }}</h3>
+                    {% if exam.is_active %}
+                    <span class="badge-pill badge-success">Active</span>
+                    {% else %}
+                    <span class="badge-pill badge-danger">Inactive</span>
+                    {% endif %}
+                </div>
+                <p class="text-secondary mb-0">{{ exam.description|default:"No description set." }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'admin_edit_exam' exam.id %}" class="btn btn-light border text-secondary fw-semibold">
+                    <i class="bi bi-sliders"></i> Settings
+                </a>
+                <button onclick="showDeleteConfirm('Exam', '{{ exam.name|escapejs }}', '{% url 'admin_delete_exam' exam.id %}')" 
+                        class="btn btn-light border text-danger fw-semibold">
+                    <i class="bi bi-trash"></i> Delete Exam
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-2">
+            <div class="col-md col-6">
+                <div class="stat-box">
+                    <div class="num">{{ exam.duration_minutes }}</div>
+                    <div class="lbl">Duration (min)</div>
+                </div>
+            </div>
+            <div class="col-md col-6">
+                <div class="stat-box">
+                    <div class="num">{{ exam.total_questions }}</div>
+                    <div class="lbl">Q per attempt</div>
+                </div>
+            </div>
+            <div class="col-md col-6">
+                <div class="stat-box">
+                    <div class="num">{{ candidate_count }}</div>
+                    <div class="lbl">Candidates</div>
+                </div>
+            </div>
+            <div class="col-md col-6">
+                <div class="stat-box">
+                    <div class="num text-success">{{ selected_count }}</div>
+                    <div class="lbl">Selected</div>
+                </div>
+            </div>
+            <div class="col-md col-6">
+                <div class="stat-box">
+                    <div class="num">{{ exam.passing_percentage }}%</div>
+                    <div class="lbl">Pass</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 small text-secondary">
+            <i class="bi bi-calendar-event me-1"></i> {{ exam.start_time|date:"d M Y, h:i A"|default:"Always open" }}
+            {% if exam.end_time %} → {{ exam.end_time|date:"d M Y, h:i A" }}{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ── Exam-wise Selection Split & Subject Distribution ───── -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="chart-card text-center">
+            <h5>Selection Split</h5>
+            <div class="donut"></div>
+            <div class="d-flex justify-content-center gap-3 small">
+                <span><i class="bi bi-circle-fill text-success"></i> Selected {{ selected_count }}</span>
+                <span><i class="bi bi-circle-fill text-danger"></i> Rejected {{ not_selected_count }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="section-card">
+            <div class="section-card-head">
+                <h5>Subject Distribution</h5>
+            </div>
+            <div class="section-card-body">
+                {% for cat in category_stats %}
+                <div class="subject-row">
+                    <div class="lbl"><b>{{ cat.name }}</b><span>{{ cat.count }} Qs · {{ cat.percent }}%</span></div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ cat.percent }}%; background: {{ cat.color }};"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-secondary py-4">
+                    <i class="bi bi-tags fs-1 opacity-25 d-block mb-2"></i>
+                    No subjects configured for this exam.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-box {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 12px 16px;
+        text-align: center;
+    }
+    .stat-box .num { font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+    .stat-box .lbl { font-size: 0.72rem; color: #64748b; font-weight: 500; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    .sortable { cursor: pointer; user-select: none; }
+    .sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75rem; }
+    .sortable.asc::after { content: " ↑"; opacity: 1; color: #f97316; }
+    .sortable.desc::after { content: " ↓"; opacity: 1; color: #f97316; }
+
+    .bulk-bar {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        display: none;
+        align-items: center;
+        gap: 12px;
+    }
+    .bulk-bar.show { display: flex; }
+    .detail-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .detail-tabs .nav-link {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        color: #64748b;
+        font-weight: 700;
+        padding: 9px 14px;
+    }
+
+    /* Exam-wise widgets (Selection Split + Subject Distribution) */
+    .chart-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        height: 100%;
+    }
+    .chart-card h5 { font-size: 1rem; font-weight: 800; margin: 0 0 16px; }
+    .donut {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        background: conic-gradient(#10b981 0 {{ selection_rate }}%, #ef4444 {{ selection_rate }}% 100%);
+        display: grid;
+        place-items: center;
+        position: relative;
+    }
+    .donut::after {
+        content: "{{ selection_rate }}%";
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: white;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.4rem;
+        color: #0f172a;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .subject-row { margin-bottom: 14px; }
+    .subject-row:last-child { margin-bottom: 0; }
+    .subject-row .lbl { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+    .subject-row .lbl b { font-weight: 600; color: #334155; }
+    .subject-row .lbl span { color: #64748b; font-weight: 500; }
+    .progress-track {
+        height: 8px;
+        background: #f1f5f9;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%; border-radius: 999px;
+        transition: width 0.6s ease;
+    }
+    .detail-tabs .nav-link.active {
+        background: #fff7ed;
+        border-color: #fdba74;
+        color: #ea580c;
+    }
+</style>
+
+<ul class="nav detail-tabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#candidatesTab" type="button">Candidates List</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#resultsTab" type="button">Results</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#questionsTab" type="button">Questions</button></li>
+</ul>
+
+<div class="tab-content">
+<div class="tab-pane fade show active" id="candidatesTab">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <span>Candidates ({{ candidate_count }})</span>
+        <a href="{% url 'admin_edit_exam' exam.id %}" class="btn btn-light border fw-semibold text-secondary btn-sm">
+            <i class="bi bi-pencil-square"></i> Manage
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead><tr><th>Name</th><th>Registration ID</th><th>Mobile</th><th>Status</th></tr></thead>
+            <tbody>
+                {% if assigned_candidates %}
+                    {% for candidate in assigned_candidates %}
+                    <tr>
+                        <td class="fw-semibold">{{ candidate.name }}</td>
+                        <td><code>{{ candidate.registration_id }}</code></td>
+                        <td class="text-secondary">{{ candidate.mobile }}</td>
+                        <td><span class="badge-pill badge-success">Assigned</span></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="text-center py-5 text-secondary">Available to all candidates. Use Settings to assign specific candidates.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<div class="tab-pane fade" id="resultsTab">
+<div class="admin-card mb-4">
+    <div class="admin-card-header">
+        <span>Results ({{ attempt_count }})</span>
+        <a href="{% url 'admin_results' %}" class="btn btn-light border fw-semibold text-secondary btn-sm">
+            <i class="bi bi-box-arrow-up-right"></i> All Results
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead><tr><th>Candidate</th><th>Score</th><th>Percentage</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td class="fw-semibold">{{ attempt.candidate.name }}</td>
+                    <td>{{ attempt.score }} / {{ attempt.total }}</td>
+                    <td>{{ attempt.percentage }}%</td>
+                    <td>
+                        {% if attempt.status == 'Selected' %}
+                        <span class="badge-pill badge-success">Selected</span>
+                        {% else %}
+                        <span class="badge-pill badge-danger">Not Selected</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-secondary">{{ attempt.date_taken|date:"d M Y, h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-5 text-secondary">No results for this exam yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<div class="tab-pane fade" id="questionsTab">
+
+<!-- ── Questions Section ─────────────────────────────────── -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span>Questions in this Exam ({{ question_count }})</span>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light border fw-semibold text-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#bulkImportExamModal">
+                <i class="bi bi-upload"></i> Bulk Import (CSV/XLSX)
+            </button>
+            <a href="{% url 'admin_add_question' %}?exam_id={{ exam.id }}" class="btn-orange btn-sm">
+                <i class="bi bi-plus-circle"></i> Add Question
+            </a>
+        </div>
+    </div>
+
+    <div class="p-3 pb-0">
+        <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="qSearch" placeholder="Search question text or option...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="answerFilter">
+                    <option value="">All Answers</option>
+                    <option value="A">Correct: A</option>
+                    <option value="B">Correct: B</option>
+                    <option value="C">Correct: C</option>
+                    <option value="D">Correct: D</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end small text-secondary" id="qCount"></div>
+        </div>
+
+        <div class="bulk-bar" id="bulkBar">
+            <i class="bi bi-check2-square text-primary-orange"></i>
+            <span class="fw-semibold"><span id="bulkCount">0</span> selected</span>
+            <form method="POST" action="{% url 'admin_bulk_delete_questions' %}" id="bulkForm" onsubmit="return confirm('Delete selected questions? This cannot be undone.');" class="ms-auto m-0">
+                {% csrf_token %}
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <span id="hiddenIds"></span>
+                <button type="button" class="btn btn-sm btn-light border me-2" onclick="clearSelection()">Clear</button>
+                <button type="submit" class="btn btn-sm btn-danger fw-semibold"><i class="bi bi-trash"></i> Delete Selected</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table admin-table" id="qTable">
+            <thead>
+                <tr>
+                    <th style="width: 36px;"><input type="checkbox" id="selAll" class="form-check-input"></th>
+                    <th class="sortable" data-sort="id" style="width: 50px;">#</th>
+                    <th class="sortable" data-sort="text">Question</th>
+                    <th class="sortable" data-sort="answer" style="width: 80px;">Answer</th>
+                    <th>Correct Option</th>
+                    <th class="text-end" style="width: 120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr class="qrow" data-id="{{ q.id }}" data-text="{{ q.question_text|lower }}" data-answer="{{ q.correct_answer }}">
+                    <td><input type="checkbox" class="form-check-input row-check" value="{{ q.id }}"></td>
+                    <td class="text-secondary small">{{ forloop.counter }}</td>
+                    <td><div class="fw-medium text-dark">{{ q.question_text|truncatechars:120 }}</div></td>
+                    <td><span class="badge-pill bg-light text-dark border fw-bold">{{ q.correct_answer }}</span></td>
+                    <td><div class="text-success small fw-bold">{{ q.get_correct_answer_text|truncatechars:60 }}</div></td>
+                    <td class="text-end">
+                        <a href="{% url 'admin_edit_question' q.pk %}" class="btn btn-sm btn-light border text-secondary"><i class="bi bi-pencil-square"></i></a>
+                        <a href="{% url 'admin_delete_question' q.pk %}" class="btn btn-sm btn-light border text-danger"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-5 text-secondary">
+                    <i class="bi bi-inbox d-block mb-2" style="font-size:2rem; opacity:.35;"></i>
+                    No questions assigned to this exam yet.<br>
+                    <span class="small">Use "Bulk Import" or "Add Question" to populate.</span>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Bulk Import Modal (scoped to this exam) ──────────── -->
+</div>
+</div>
+<div class="modal fade" id="bulkImportExamModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Bulk Import — {{ exam.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" action="{% url 'admin_bulk_import_questions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <input type="hidden" name="redirect_to" value="admin_exam_detail">
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-4">
+                        Upload CSV or Excel with columns: <code>Question, OptionA, OptionB, OptionC, OptionD, Answer</code>.
+                        All rows will be added to this exam's question bank.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label">Choose File</label>
+                        <input type="file" name="file" class="form-control" accept=".csv,.xlsx,.xls" required>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="replace_existing" id="replaceChk">
+                        <label class="form-check-label small fw-medium" for="replaceChk">
+                            Replace all existing questions in this exam first
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light fw-bold text-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-orange">Start Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const tbody = document.querySelector('#qTable tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr.qrow'));
+    const search = document.getElementById('qSearch');
+    const ansFilter = document.getElementById('answerFilter');
+    const counter = document.getElementById('qCount');
+    const headers = document.querySelectorAll('.sortable');
+    const selAll = document.getElementById('selAll');
+    const bulkBar = document.getElementById('bulkBar');
+    const bulkCount = document.getElementById('bulkCount');
+    const hiddenIds = document.getElementById('hiddenIds');
+
+    function applyFilter() {
+        const q = (search.value || '').toLowerCase();
+        const a = ansFilter.value;
+        let visible = 0;
+        rows.forEach(r => {
+            const text = r.dataset.text;
+            const answerOk = !a || r.dataset.answer === a;
+            const textOk = !q || text.includes(q) || r.innerText.toLowerCase().includes(q);
+            const show = textOk && answerOk;
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        counter.textContent = visible + ' of ' + rows.length + ' question(s)';
+    }
+
+    function applySort(key, desc) {
+        const numeric = key === 'id';
+        const sorted = rows.slice().sort((a, b) => {
+            let av = a.dataset[key] ?? '';
+            let bv = b.dataset[key] ?? '';
+            if (numeric) { return desc ? (parseFloat(bv) - parseFloat(av)) : (parseFloat(av) - parseFloat(bv)); }
+            return desc ? bv.localeCompare(av) : av.localeCompare(bv);
+        });
+        sorted.forEach(r => tbody.appendChild(r));
+    }
+
+    function refreshSelection() {
+        const checked = rows.filter(r => r.querySelector('.row-check')?.checked && r.style.display !== 'none');
+        bulkCount.textContent = checked.length;
+        bulkBar.classList.toggle('show', checked.length > 0);
+        hiddenIds.innerHTML = checked.map(r => `<input type="hidden" name="ids" value="${r.dataset.id}">`).join('');
+    }
+
+    window.clearSelection = function() {
+        rows.forEach(r => { const c = r.querySelector('.row-check'); if (c) c.checked = false; });
+        if (selAll) selAll.checked = false;
+        refreshSelection();
+    };
+
+    search?.addEventListener('input', applyFilter);
+    ansFilter?.addEventListener('change', applyFilter);
+
+    headers.forEach(h => h.addEventListener('click', () => {
+        const k = h.dataset.sort;
+        const isAsc = !h.classList.contains('asc');
+        headers.forEach(x => x.classList.remove('asc','desc'));
+        h.classList.add(isAsc ? 'asc' : 'desc');
+        applySort(k, !isAsc);
+    }));
+
+    selAll?.addEventListener('change', () => {
+        rows.forEach(r => {
+            if (r.style.display !== 'none') {
+                const c = r.querySelector('.row-check');
+                if (c) c.checked = selAll.checked;
+            }
+        });
+        refreshSelection();
+    });
+
+    rows.forEach(r => {
+        const c = r.querySelector('.row-check');
+        c?.addEventListener('change', refreshSelection);
+    });
+
+    applyFilter();
+})();
+</script>
+{% endblock %}

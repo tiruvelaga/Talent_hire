@@ -1,0 +1,35 @@
+<div class="exam-card">
+    <div class="top">
+        <h3>{{ exam.name }}</h3>
+        <p>{{ exam.description|default:"General aptitude & recruitment screening test" }}</p>
+    </div>
+    <div class="meta-grid">
+        <div class="meta">
+            <div class="lbl">Duration</div>
+            <div class="val">{{ exam.duration_minutes }} min</div>
+        </div>
+        <div class="meta">
+            <div class="lbl">Questions</div>
+            <div class="val">{{ exam.total_questions }}</div>
+        </div>
+        <div class="meta">
+            <div class="lbl">Passing</div>
+            <div class="val">{{ exam.passing_percentage }}%</div>
+        </div>
+        <div class="meta">
+            <div class="lbl">Max Attempts</div>
+            <div class="val">{{ exam.max_attempts }}</div>
+        </div>
+    </div>
+    <div class="footer">
+        {% if exam.can_start %}
+        <a href="{% url 'pre_exam_check' exam.id %}" class="btn-primary-orange w-100">
+            <i class="bi bi-play-fill"></i> Start Exam
+        </a>
+        {% else %}
+        <span class="btn-primary-orange disabled w-100" aria-disabled="true" title="{{ exam.start_disabled_reason }}">
+            <i class="bi bi-lock-fill"></i> {{ exam.start_disabled_label }}
+        </span>
+        {% endif %}
+    </div>
+</div>

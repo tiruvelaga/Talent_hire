@@ -1,0 +1,424 @@
+{% extends 'exam/base.html' %}
+{% block title %}Candidate Dashboard – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Hero ────────────────────────────────────────── */
+    .hero-card {
+        background:
+            linear-gradient(135deg, rgba(249,115,22,0.10), rgba(168,85,247,0.10)),
+            rgba(255, 255, 255, 0.78);
+        backdrop-filter: saturate(180%) blur(18px);
+        -webkit-backdrop-filter: saturate(180%) blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 22px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        box-shadow: 0 12px 40px rgba(2,6,23,0.08);
+        position: relative; overflow: hidden;
+    }
+    .hero-card::after {
+        content: '';
+        position: absolute; right: -40px; top: -40px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(249,115,22,0.18), transparent 70%);
+        pointer-events: none;
+    }
+    .hero-greeting { font-size: 1.7rem; font-weight: 800; margin: 0 0 4px; }
+    .hero-sub { color: var(--text-muted); margin: 0; }
+
+    /* ── Stat tiles ───────────────────────────────────── */
+    .stat-tile {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        -webkit-backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 18px;
+        padding: 20px;
+        display: flex; align-items: center; gap: 16px;
+        box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+        transition: transform 0.22s, box-shadow 0.22s;
+    }
+    .stat-tile:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(2,6,23,0.10); }
+    .stat-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; color: white; flex-shrink: 0;
+    }
+    .si-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .si-green { background: linear-gradient(135deg, #10b981, #059669); }
+    .si-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .si-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+
+    .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-value { font-size: 1.4rem; font-weight: 800; line-height: 1.1; }
+
+    /* ── Active exam cards ────────────────────────────── */
+    .exam-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        -webkit-backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        padding: 0; overflow: hidden;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.07);
+        transition: transform 0.22s, box-shadow 0.22s;
+        height: 100%;
+        display: flex; flex-direction: column;
+    }
+    .exam-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(2,6,23,0.12); }
+    .exam-card .top {
+        padding: 20px 22px;
+        background: linear-gradient(135deg, rgba(249,115,22,0.10), rgba(251,146,60,0.04));
+        border-bottom: 1px solid rgba(226,232,240,0.6);
+    }
+    .exam-card .top h3 { font-size: 1.15rem; font-weight: 800; margin: 0 0 4px; }
+    .exam-card .top p { color: var(--text-muted); font-size: 0.86rem; margin: 0; }
+    .exam-card .meta-grid {
+        padding: 16px 22px;
+        display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px;
+    }
+    .exam-card .meta {
+        background: rgba(248,250,252,0.7);
+        border: 1px solid rgba(226,232,240,0.6);
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+    .exam-card .meta .lbl { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    .exam-card .meta .val { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
+    .exam-card .footer { padding: 14px 22px 20px; margin-top: auto; }
+    .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .section-head h4 { margin: 0; }
+    .view-all-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--primary-orange);
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .view-all-link:hover { color: #ea580c; }
+
+    .empty-card {
+        text-align: center; padding: 60px 24px;
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px dashed rgba(148,163,184,0.4);
+        border-radius: 20px;
+    }
+    .empty-card i { font-size: 3.4rem; opacity: 0.35; }
+
+    /* ── History table ────────────────────────────────── */
+    .table-card {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        -webkit-backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.07);
+        overflow: hidden;
+    }
+    .table-card .toolbar {
+        padding: 18px 22px;
+        display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+        border-bottom: 1px solid rgba(226,232,240,0.7);
+    }
+    .table-card .toolbar .left { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 200px; }
+    .search-input {
+        flex: 1; min-width: 200px;
+        border: 1px solid rgba(226,232,240,0.85);
+        background: rgba(255,255,255,0.6);
+        border-radius: 10px;
+        padding: 9px 12px 9px 36px;
+        font-size: 0.88rem;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%2364748b' viewBox='0 0 16 16'><path d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/></svg>");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+        background-size: 14px;
+        transition: all 0.2s;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: rgba(249,115,22,0.45);
+        box-shadow: 0 0 0 4px rgba(249,115,22,0.10);
+        background-color: white;
+    }
+    .filter-select {
+        border: 1px solid rgba(226,232,240,0.85);
+        background: rgba(255,255,255,0.7);
+        border-radius: 10px;
+        padding: 9px 30px 9px 12px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%2364748b' viewBox='0 0 16 16'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px;
+    }
+    .filter-select:focus { outline: none; border-color: rgba(249,115,22,0.45); }
+
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 22px; text-align: left; }
+    .data-table th {
+        font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.4px;
+        background: rgba(248,250,252,0.6);
+        border-bottom: 1px solid rgba(226,232,240,0.7);
+        cursor: pointer; user-select: none;
+        white-space: nowrap;
+    }
+    .data-table th .sort-arrow { display: inline-block; margin-left: 6px; opacity: 0.4; }
+    .data-table th.sorted-asc .sort-arrow,
+    .data-table th.sorted-desc .sort-arrow { opacity: 1; color: var(--primary-orange); }
+    .data-table tbody tr {
+        border-bottom: 1px solid rgba(226,232,240,0.5);
+        transition: background 0.15s;
+    }
+    .data-table tbody tr:hover { background: rgba(249,115,22,0.04); }
+    .data-table td { font-size: 0.88rem; vertical-align: middle; }
+    .data-table .name { font-weight: 600; }
+    .data-table .pct-bar {
+        width: 80px; height: 6px; border-radius: 999px;
+        background: rgba(226,232,240,0.6);
+        overflow: hidden; display: inline-block;
+        margin-right: 8px; vertical-align: middle;
+    }
+    .data-table .pct-bar > span {
+        display: block; height: 100%;
+        background: var(--primary-gradient);
+        border-radius: 999px;
+    }
+
+    .no-rows {
+        padding: 50px 20px; text-align: center; color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .data-table th, .data-table td { padding: 10px 14px; font-size: 0.82rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Hero / greeting ─────────────────────────────────── -->
+<div class="hero-card">
+    <h2 class="hero-greeting">Welcome back, {{ candidate_name|default:"Candidate" }}</h2>
+    <p class="hero-sub">{% if active_exam_count %}You have {{ active_exam_count }} active exam{{ active_exam_count|pluralize }} waiting.{% else %}No active exams right now.{% endif %} Review your progress below.</p>
+</div>
+
+<!-- ── Stat row ────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-tile">
+            <div class="stat-icon si-orange"><i class="bi bi-clipboard-check"></i></div>
+            <div>
+                <div class="stat-label">Active Exams</div>
+                <div class="stat-value">{{ active_exam_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-tile">
+            <div class="stat-icon si-blue"><i class="bi bi-list-task"></i></div>
+            <div>
+                <div class="stat-label">Attempts</div>
+                <div class="stat-value">{{ attempts|length }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-tile">
+            <div class="stat-icon si-green"><i class="bi bi-trophy"></i></div>
+            <div>
+                <div class="stat-label">Selected</div>
+                <div class="stat-value" id="statSelected">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-tile">
+            <div class="stat-icon si-purple"><i class="bi bi-bell"></i></div>
+            <div>
+                <div class="stat-label">New Alerts</div>
+                <div class="stat-value">{{ nav_unread_count|default:0 }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Active Exams (cards) ────────────────────────────── -->
+<div class="section-head">
+    <h4 class="fw-bold">Active Exams</h4>
+    {% if active_exam_count %}
+    <a href="{% url 'candidate_active_exams' %}" class="view-all-link">
+        View All <i class="bi bi-arrow-right"></i>
+    </a>
+    {% endif %}
+</div>
+<div class="row g-4 mb-5">
+    {% for exam in active_exams|slice:":3" %}
+    <div class="col-md-6 col-lg-4">
+        {% include 'exam/partials/candidate_exam_card.html' %}
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-card">
+            <i class="bi bi-calendar-x mb-3 d-block"></i>
+            <h5 class="text-secondary mb-1">No active exams available</h5>
+            <p class="text-muted small mb-0">Please check back later or contact support.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ── Attempt History Table ───────────────────────────── -->
+<h4 class="fw-bold mb-3">Attempt History</h4>
+<div class="table-card mb-5">
+    <div class="toolbar">
+        <div class="left">
+            <input type="search" id="histSearch" class="search-input" placeholder="Search by exam, status, score…">
+            <select id="histStatusFilter" class="filter-select" title="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="Selected">Selected</option>
+                <option value="Not Selected">Not Selected</option>
+                <option value="Awaiting">Awaiting Results</option>
+            </select>
+        </div>
+        <div class="text-muted small" id="histCount"></div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table" id="histTable">
+            <thead>
+                <tr>
+                    <th data-sort="text">Exam <span class="sort-arrow">↕</span></th>
+                    <th data-sort="number">Score <span class="sort-arrow">↕</span></th>
+                    <th data-sort="number">Percentage <span class="sort-arrow">↕</span></th>
+                    <th data-sort="text">Status <span class="sort-arrow">↕</span></th>
+                    <th data-sort="date">Date <span class="sort-arrow">↕</span></th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in attempts %}
+                <tr data-status="{% if not a.is_published %}Awaiting{% else %}{{ a.status }}{% endif %}">
+                    <td class="name">{{ a.exam.name|default:"Online Recruitment Exam" }}</td>
+                    <td data-value="{{ a.score }}">{{ a.score }} / {{ a.total }}</td>
+                    <td data-value="{{ a.percentage }}">
+                        <span class="pct-bar"><span style="width: {{ a.percentage }}%"></span></span>
+                        {{ a.percentage }}%
+                    </td>
+                    <td>
+                        {% if not a.is_published %}
+                            <span class="badge-pill badge-warning">Awaiting</span>
+                        {% elif a.status == 'Selected' %}
+                            <span class="badge-pill badge-success">Selected</span>
+                        {% else %}
+                            <span class="badge-pill badge-danger">Not Selected</span>
+                        {% endif %}
+                    </td>
+                    <td data-value="{{ a.date_taken|date:'U' }}">{{ a.date_taken|date:"d M Y, h:i A" }}</td>
+                    <td>
+                        {% if a.is_published %}
+                        <a href="{% url 'result' a.id %}" class="btn-ghost"><i class="bi bi-eye"></i> View</a>
+                        {% else %}
+                        <span class="text-muted small">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="no-row-row">
+                    <td colspan="6" class="no-rows">
+                        <i class="bi bi-inbox" style="font-size:2.4rem;opacity:0.3;display:block;margin-bottom:8px;"></i>
+                        No attempts yet. Take your first exam to see history here.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const table = document.getElementById('histTable');
+    if (!table) return;
+    const tbody = table.tBodies[0];
+    const search = document.getElementById('histSearch');
+    const statusFilter = document.getElementById('histStatusFilter');
+    const counter = document.getElementById('histCount');
+    const headers = table.querySelectorAll('th[data-sort]');
+
+    const allRows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.classList.contains('no-row-row'));
+
+    // Selected count for stats card
+    const selCount = allRows.filter(r => r.dataset.status === 'Selected').length;
+    const selEl = document.getElementById('statSelected');
+    if (selEl) selEl.textContent = selCount;
+
+    function refresh() {
+        const q = (search.value || '').toLowerCase().trim();
+        const s = statusFilter.value;
+        let visible = 0;
+        allRows.forEach(r => {
+            const text = r.innerText.toLowerCase();
+            const matchesQ = !q || text.includes(q);
+            const matchesS = !s || r.dataset.status === s;
+            const show = matchesQ && matchesS;
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        if (counter) counter.textContent = visible + ' / ' + allRows.length + ' attempt' + (allRows.length === 1 ? '' : 's');
+        // Empty state
+        const existingEmpty = tbody.querySelector('.no-result-row');
+        if (visible === 0 && allRows.length > 0) {
+            if (!existingEmpty) {
+                const tr = document.createElement('tr');
+                tr.className = 'no-result-row';
+                tr.innerHTML = '<td colspan="6" class="no-rows">No matches. Try a different search or filter.</td>';
+                tbody.appendChild(tr);
+            }
+        } else if (existingEmpty) {
+            existingEmpty.remove();
+        }
+    }
+
+    search && search.addEventListener('input', refresh);
+    statusFilter && statusFilter.addEventListener('change', refresh);
+
+    // Sorting
+    headers.forEach((th, idx) => {
+        th.addEventListener('click', () => {
+            const type = th.dataset.sort;
+            const isAsc = !th.classList.contains('sorted-asc');
+            headers.forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+            th.classList.add(isAsc ? 'sorted-asc' : 'sorted-desc');
+            const sorted = allRows.slice().sort((a, b) => {
+                let av = a.cells[idx].dataset.value ?? a.cells[idx].innerText.trim();
+                let bv = b.cells[idx].dataset.value ?? b.cells[idx].innerText.trim();
+                if (type === 'number' || type === 'date') {
+                    av = parseFloat(av) || 0;
+                    bv = parseFloat(bv) || 0;
+                    return isAsc ? av - bv : bv - av;
+                }
+                return isAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+            });
+            sorted.forEach(r => tbody.appendChild(r));
+        });
+    });
+
+    refresh();
+})();
+</script>
+{% endblock %}

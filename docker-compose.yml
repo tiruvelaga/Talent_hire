@@ -1,0 +1,165 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=talent_hire
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_password
+    command: postgres -c max_connections=1000 -c shared_buffers=512MB -c work_mem=16MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  web1:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 8 --worker-class gthread --access-logfile - talent_hire.wsgi:application
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      - DB_NAME=talent_hire
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - RUN_MIGRATIONS=true
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  web2:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 8 --worker-class gthread --access-logfile - talent_hire.wsgi:application
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      - DB_NAME=talent_hire
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      web1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  web3:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 8 --worker-class gthread --access-logfile - talent_hire.wsgi:application
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      - DB_NAME=talent_hire
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      web1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  web4:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 8 --worker-class gthread --access-logfile - talent_hire.wsgi:application
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=False
+      - DB_NAME=talent_hire
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      web1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  celery_worker:
+    build: .
+    command: celery -A talent_hire worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DB_NAME=talent_hire
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      web1:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/app/static
+    depends_on:
+      - web1
+      - web2
+      - web3
+      - web4
+
+volumes:
+  postgres_data:

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TalentHire – Online Exam Portal{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #f97316;
+            --primary-gradient: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-bg-strong: rgba(255, 255, 255, 0.78);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.7);
+            --glass-shadow: 0 10px 30px rgba(2, 6, 23, 0.08), 0 2px 8px rgba(2, 6, 23, 0.04);
+            --glass-shadow-hover: 0 20px 50px rgba(2, 6, 23, 0.12), 0 8px 16px rgba(2, 6, 23, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background:
+                radial-gradient(900px circle at 0% 0%, rgba(249, 115, 22, 0.10), transparent 60%),
+                radial-gradient(800px circle at 100% 0%, rgba(168, 85, 247, 0.10), transparent 60%),
+                radial-gradient(700px circle at 50% 100%, rgba(59, 130, 246, 0.08), transparent 60%),
+                linear-gradient(180deg, #fafbff 0%, #f5f6fb 100%);
+            background-attachment: fixed;
+        }
+
+        /* ── Glass Header ───────────────────────────────────────── */
+        .header {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: saturate(180%) blur(18px);
+            -webkit-backdrop-filter: saturate(180%) blur(18px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; color: var(--text-main);
+            font-weight: 800; font-size: 1.25rem;
+        }
+        .brand-logo {
+            background: var(--primary-gradient);
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.05rem;
+            box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
+        }
+        .nav-links { display: flex; gap: 24px; margin-left: 36px; }
+        .nav-link-item {
+            text-decoration: none; color: var(--text-muted);
+            font-weight: 500; font-size: 0.92rem;
+            padding: 8px 4px;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link-item:hover, .nav-link-item.active {
+            color: var(--primary-orange);
+            border-bottom-color: var(--primary-orange);
+        }
+
+        /* ── Right cluster ──────────────────────────────────────── */
+        .nav-cluster { display: flex; align-items: center; gap: 8px; }
+        .icon-btn {
+            position: relative;
+            width: 40px; height: 40px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .icon-btn:hover {
+            color: var(--primary-orange);
+            border-color: rgba(249, 115, 22, 0.4);
+            background: rgba(255, 247, 237, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+        }
+        .icon-btn i { font-size: 1.15rem; }
+        .badge-dot {
+            position: absolute;
+            top: 6px; right: 6px;
+            min-width: 18px; height: 18px;
+            padding: 0 5px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+        }
+
+        .user-chip {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 6px 14px 6px 6px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 999px;
+            margin-right: 4px;
+        }
+        .user-chip .avatar {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white; font-weight: 700; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+        }
+        .user-chip .uname {
+            font-weight: 600; font-size: 0.88rem; color: var(--text-main);
+            line-height: 1.1;
+        }
+        .user-chip .urole {
+            font-size: 0.7rem; color: var(--text-muted);
+        }
+
+        /* ── Glass dropdown ─────────────────────────────────────── */
+        .nav-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 360px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(22px);
+            -webkit-backdrop-filter: saturate(180%) blur(22px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(2, 6, 23, 0.18);
+            padding: 8px;
+            opacity: 0; transform: translateY(-6px) scale(0.98);
+            pointer-events: none;
+            transition: all 0.18s ease;
+            z-index: 2000;
+            max-height: 480px; overflow-y: auto;
+        }
+        .nav-dropdown.open {
+            opacity: 1; transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .dropdown-wrap { position: relative; }
+        .dropdown-head {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+            margin-bottom: 6px;
+        }
+        .dropdown-head h6 { margin: 0; font-weight: 700; font-size: 0.95rem; }
+        .dropdown-item-row {
+            display: flex; gap: 10px; align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none; color: inherit;
+            transition: background 0.15s;
+        }
+        .dropdown-item-row:hover { background: rgba(249, 115, 22, 0.06); color: inherit; }
+        .dropdown-item-row.unread { background: #f8f9fa; }
+        .dropdown-item-row .dot-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.95rem; flex-shrink: 0;
+        }
+        .dropdown-item-row .dot-icon.results { background: linear-gradient(135deg, #10b981, #059669); }
+        .dropdown-item-row .dot-icon.exam    { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .dropdown-item-row .dot-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .dropdown-item-row .dot-icon.support { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .dropdown-item-row .dot-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .dropdown-item-row .dot-icon.info    { background: linear-gradient(135deg, #64748b, #475569); }
+        .dropdown-item-row .body { flex: 1; min-width: 0; }
+        .dropdown-item-row .ti { font-weight: 600; font-size: 0.86rem; line-height: 1.3; }
+        .dropdown-item-row .ms { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .dropdown-item-row .ts { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
+
+        .dropdown-empty {
+            padding: 36px 16px; text-align: center; color: var(--text-muted); font-size: 0.85rem;
+        }
+        .dropdown-foot {
+            padding: 8px 4px 4px;
+            border-top: 1px solid rgba(226, 232, 240, 0.7);
+            margin-top: 6px;
+            display: flex; justify-content: space-between;
+        }
+        .dropdown-foot a, .dropdown-foot button {
+            font-size: 0.8rem; font-weight: 600;
+            color: var(--primary-orange);
+            text-decoration: none; background: none; border: none; cursor: pointer; padding: 4px 8px;
+        }
+        .dropdown-foot a:hover, .dropdown-foot button:hover { text-decoration: underline; }
+
+        /* ── Glass Cards ────────────────────────────────────────── */
+        .content-card,
+        .glass-card {
+            background: var(--glass-bg-strong);
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: var(--glass-shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .content-card:hover, .glass-card:hover {
+            box-shadow: var(--glass-shadow-hover);
+            transform: translateY(-3px);
+        }
+
+        /* ── Buttons ────────────────────────────────────────────── */
+        .btn-primary-orange {
+            background: var(--primary-gradient);
+            color: white; border: none;
+            border-radius: 12px;
+            padding: 10px 22px;
+            font-weight: 600; font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 8px 18px rgba(249, 115, 22, 0.28);
+            justify-content: center;
+        }
+        .btn-primary-orange:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(249, 115, 22, 0.4);
+        }
+        .btn-primary-orange.disabled,
+        .btn-primary-orange[aria-disabled="true"] {
+            background: #cbd5e1;
+            color: #64748b;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none;
+        }
+        .btn-primary-orange.disabled:hover,
+        .btn-primary-orange[aria-disabled="true"]:hover {
+            background: #cbd5e1;
+            color: #64748b;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 10px; padding: 8px 14px;
+            font-weight: 600; font-size: 0.85rem;
+            color: var(--text-main); cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-ghost:hover {
+            background: white; border-color: rgba(249, 115, 22, 0.3);
+            color: var(--primary-orange);
+        }
+
+        /* ── Badges ─────────────────────────────────────────────── */
+        .badge-pill {
+            padding: 4px 12px; border-radius: 50px;
+            font-weight: 600; font-size: 0.75rem;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+
+        .text-primary-orange { color: var(--primary-orange) !important; }
+
+        footer {
+            margin-top: auto; padding: 20px;
+            text-align: center; color: var(--text-muted); font-size: 0.85rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.6);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: saturate(180%) blur(12px);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="header">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'candidate_dashboard' %}" class="brand">
+                <div class="brand-logo"><i class="bi bi-lightning-charge-fill"></i></div>
+                <span>TalentHire</span>
+            </a>
+            {% if request.session.candidate_id %}
+            <nav class="nav-links">
+                <a href="{% url 'candidate_dashboard' %}" class="nav-link-item {% if request.resolver_match.url_name == 'candidate_dashboard' %}active{% endif %}">Dashboard</a>
+            </nav>
+            {% endif %}
+        </div>
+
+        {% if request.session.candidate_id %}
+        <div class="nav-cluster">
+            <!-- Profile chip (click to open My Profile + password reset) -->
+            <a href="{% url 'candidate_profile' %}" class="user-chip text-decoration-none" style="cursor: pointer;" title="My Profile &amp; Change Password">
+                <div class="avatar">
+                    {% with name=nav_candidate.name|default:request.session.candidate_name %}
+                        {{ name|slice:":1"|upper }}
+                    {% endwith %}
+                </div>
+                <div>
+                    <div class="uname">{{ nav_candidate.name|default:request.session.candidate_name }}</div>
+                    <div class="urole">{{ nav_candidate.registration_id|default:"" }}</div>
+                </div>
+            </a>
+
+            <!-- Notifications -->
+            <div class="dropdown-wrap">
+                <button class="icon-btn" type="button" id="notifBtn" aria-haspopup="true" aria-expanded="false" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                    {% if nav_unread_count and nav_unread_count > 0 %}
+                    <span class="badge-dot">{{ nav_unread_count }}</span>
+                    {% endif %}
+                </button>
+                <div class="nav-dropdown" id="notifDropdown" role="menu">
+                    <div class="dropdown-head">
+                        <h6>Notifications</h6>
+                        {% if nav_unread_count and nav_unread_count > 0 %}
+                        <span class="badge-pill badge-warning">{{ nav_unread_count }} new</span>
+                        {% endif %}
+                    </div>
+                    {% if nav_recent_notifications %}
+                        {% for n in nav_recent_notifications %}
+                        <a class="dropdown-item-row {% if not n.is_read %}unread{% endif %}" href="{% if n.link %}{{ n.link }}{% else %}{% url 'notifications' %}{% endif %}">
+                            <div class="dot-icon {{ n.category }}">
+                                {% if n.category == 'results' %}<i class="bi bi-bar-chart-fill"></i>
+                                {% elif n.category == 'exam' %}<i class="bi bi-clipboard-check"></i>
+                                {% elif n.category == 'warning' %}<i class="bi bi-exclamation-triangle"></i>
+                                {% elif n.category == 'support' %}<i class="bi bi-life-preserver"></i>
+                                {% elif n.category == 'success' %}<i class="bi bi-check2-circle"></i>
+                                {% else %}<i class="bi bi-info-circle"></i>{% endif %}
+                            </div>
+                            <div class="body">
+                                <div class="ti">{{ n.title }}</div>
+                                <div class="ms">{{ n.message }}</div>
+                                <div class="ts">{{ n.created_at|timesince }} ago</div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="dropdown-empty">
+                            <i class="bi bi-bell-slash" style="font-size:1.6rem;opacity:0.4;"></i>
+                            <div class="mt-2">No notifications yet</div>
+                        </div>
+                    {% endif %}
+                    <div class="dropdown-foot">
+                        {% if nav_unread_count and nav_unread_count > 0 %}
+                        <form method="post" action="{% url 'notification_mark_all_read' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit">Mark all as read</button>
+                        </form>
+                        {% else %}<span></span>{% endif %}
+                        <a href="{% url 'notifications' %}">View all →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help -->
+            <a href="{% url 'help_support' %}" class="icon-btn" title="Help & raise a query"><i class="bi bi-question-circle"></i></a>
+
+            <!-- Logout -->
+            <a href="{% url 'logout' %}" class="icon-btn" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+        </div>
+        {% endif %}
+    </div>
+</header>
+
+{% if messages %}
+<div class="container mt-4">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0" style="border-radius: 12px; backdrop-filter: blur(10px); background: rgba(255,255,255,0.85);">
+        <i class="bi bi-info-circle me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main class="container py-5">
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    &copy; 2026 TalentHire Recruitment Portal. All rights reserved.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function() {
+    const btn = document.getElementById('notifBtn');
+    const dd  = document.getElementById('notifDropdown');
+    if (!btn || !dd) return;
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dd.classList.toggle('open');
+        btn.setAttribute('aria-expanded', dd.classList.contains('open'));
+    });
+    document.addEventListener('click', function(e) {
+        if (!dd.contains(e.target) && !btn.contains(e.target)) {
+            dd.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { dd.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

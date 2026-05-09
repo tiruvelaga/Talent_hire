@@ -1,0 +1,198 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Results – Admin Portal{% endblock %}
+{% block nav_res %}active{% endblock %}
+{% block page_title %}Results{% endblock %}
+
+{% block content %}
+
+<!-- ── Results Summary ────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Total Attempts</span>
+                <span class="stat-value">{{ total_attempts }}</span>
+            </div>
+            <div class="stat-icon-box bg-light-purple">
+                <i class="bi bi-people-fill"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Selected</span>
+                <span class="stat-value">{{ selected_count }}</span>
+            </div>
+            <div class="stat-icon-box bg-light-green">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Not Selected</span>
+                <span class="stat-value">{{ not_selected }}</span>
+            </div>
+            <div class="stat-icon-box bg-light-red">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Avg. Score</span>
+                <span class="stat-value">{{ avg_score }}%</span>
+            </div>
+            <div class="stat-icon-box bg-light-blue">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Filter & Controls ────────────────────────────────────── -->
+<div class="admin-card mb-4">
+    <div class="p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Filter Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="" {% if not current_filter %}selected{% endif %}>All Results</option>
+                    <option value="selected" {% if current_filter == 'selected' %}selected{% endif %}>Selected</option>
+                    <option value="not-selected" {% if current_filter == 'not-selected' %}selected{% endif %}>Not Selected</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Search Candidate</label>
+                <input type="text" class="form-control" id="resultSearch" placeholder="Name or Reg ID...">
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_hold_all_results' %}" class="btn btn-outline-warning border-0 fw-bold small" style="background:#fff7ed; padding:10px 16px;">
+                        <i class="bi bi-lock me-1"></i> Hold All
+                    </a>
+                    <a href="{% url 'admin_publish_all_results' %}" class="btn btn-outline-success border-0 fw-bold small" style="background:#ecfdf5; padding:10px 16px;">
+                        <i class="bi bi-unlock me-1"></i> Publish All
+                    </a>
+                    <a href="{% url 'export_results' %}?filter={{ current_filter }}" id="exportLink" class="btn-orange ms-auto">
+                        <i class="bi bi-file-earmark-excel"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Results Table ────────────────────────────────────────── -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span>Exam History</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Reg. ID</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Status</th>
+                    <th>Visibility</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr class="result-row" data-status="{% if attempt.status == 'Selected' %}selected{% else %}not-selected{% endif %}">
+                    <td>
+                        <div class="fw-bold text-dark">{{ attempt.candidate.name }}</div>
+                        <div class="small text-secondary">{{ attempt.candidate.mobile }}</div>
+                    </td>
+                    <td><code class="bg-light p-1 px-2 rounded small">{{ attempt.candidate.registration_id }}</code></td>
+                    <td class="fw-medium">{{ attempt.score }}/{{ attempt.total }}</td>
+                    <td>
+                        <div class="fw-bold {% if attempt.percentage >= 70 %}text-success{% else %}text-danger{% endif %}">
+                            {{ attempt.percentage }}%
+                        </div>
+                    </td>
+                    <td>
+                        {% if attempt.status == 'Selected' %}
+                        <span class="badge-pill badge-success">Selected</span>
+                        {% else %}
+                        <span class="badge-pill badge-danger">Not Selected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if attempt.is_published %}
+                        <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Published</span>
+                        {% else %}
+                        <span class="text-warning small fw-bold"><i class="bi bi-lock-fill me-1"></i> Held</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'admin_toggle_result_publish' attempt.id %}" 
+                           class="btn btn-sm {% if attempt.is_published %}btn-light text-secondary{% else %}btn-light text-success{% endif %} border"
+                           title="{% if attempt.is_published %}Hold Result{% else %}Publish Result{% endif %}">
+                           {% if attempt.is_published %}<i class="bi bi-eye-slash"></i>{% else %}<i class="bi bi-eye"></i>{% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-secondary">No attempts found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Combined filter using data-status (exact match, fixes substring bug with "Not Selected")
+function applyFilters() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const searchTerm = (document.getElementById('resultSearch').value || '').toLowerCase().trim();
+
+    document.querySelectorAll('.result-row').forEach(row => {
+        const rowStatus = row.dataset.status || '';
+        const text = row.textContent.toLowerCase();
+        let show = true;
+
+        if (statusFilter === 'selected' && rowStatus !== 'selected') show = false;
+        if (statusFilter === 'not-selected' && rowStatus !== 'not-selected') show = false;
+        if (show && searchTerm && !text.includes(searchTerm)) show = false;
+
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+const statusFilterEl = document.getElementById('statusFilter');
+const searchEl = document.getElementById('resultSearch');
+const exportLink = document.getElementById('exportLink');
+
+function updateExportLink() {
+    let filterVal = statusFilterEl.value || '';
+    let url = "{% url 'export_results' %}";
+    if (filterVal) url += `?filter=${filterVal}`;
+    exportLink.href = url;
+}
+
+statusFilterEl.addEventListener('change', () => {
+    applyFilters();
+    updateExportLink();
+});
+searchEl.addEventListener('keyup', applyFilters);
+
+// Apply on initial load (for ?filter=selected from dashboard + current dropdown value)
+window.addEventListener('load', () => {
+    applyFilters();
+    updateExportLink();
+});
+</script>
+{% endblock %}
+
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Questions – Admin Portal{% endblock %}
+{% block nav_ques %}active{% endblock %}
+{% block page_title %}Question Bank{% endblock %}
+
+{% block content %}
+
+<!-- ── Search / Filter / Sort ─────────────────────────────────── -->
+<div class="admin-card mb-4">
+    <div class="p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="questionSearch" placeholder="Search question text or option content...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Filter Exam</label>
+                <select class="form-select" id="examFilter">
+                    <option selected value="">All Exams</option>
+                    <option value="__none__">Unassigned</option>
+                    {% for exam in exams %}
+                    <option value="{{ exam.id }}">{{ exam.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Filter Answer</label>
+                <select class="form-select" id="answerFilter">
+                    <option value="">All</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sort By</label>
+                <select class="form-select" id="sortBy">
+                    <option value="id">ID (asc)</option>
+                    <option value="-id">ID (desc)</option>
+                    <option value="exam">Subject / Exam</option>
+                    <option value="text">Question Text</option>
+                    <option value="answer">Answer Letter</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light border fw-semibold text-secondary w-100" data-bs-toggle="modal" data-bs-target="#bulkImportQuestionsModal">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                    <a href="{% url 'admin_add_question' %}" class="btn-orange w-100">
+                        <i class="bi bi-plus-lg"></i> Add
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Bulk Action Bar ─────────────────────────────────────── -->
+<div class="bulk-bar" id="bulkBar">
+    <i class="bi bi-check2-square text-primary-orange"></i>
+    <span class="fw-semibold"><span id="bulkCount">0</span> selected</span>
+    <form method="POST" action="{% url 'admin_bulk_delete_questions' %}" id="bulkForm" onsubmit="return confirm('Delete selected questions? This cannot be undone.');" class="ms-auto m-0">
+        {% csrf_token %}
+        <span id="hiddenIds"></span>
+        <button type="button" class="btn btn-sm btn-light border me-2" onclick="clearSelection()">Clear</button>
+        <button type="submit" class="btn btn-sm btn-danger fw-semibold"><i class="bi bi-trash"></i> Delete Selected</button>
+    </form>
+</div>
+
+<!-- ── Questions Table ──────────────────────────────────────── -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span>Question Bank</span>
+        <span class="badge bg-light text-secondary" id="visibleCount">{{ questions|length }} Total</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table" id="qTable">
+            <thead>
+                <tr>
+                    <th style="width: 36px;"><input type="checkbox" id="selAll" class="form-check-input"></th>
+                    <th class="sortable" data-sort="id" style="width: 60px;">#</th>
+                    <th class="sortable" data-sort="text">Question</th>
+                    <th class="sortable" data-sort="answer" style="width: 90px;">Answer</th>
+                    <th>Correct Option</th>
+                    <th class="sortable" data-sort="exam">Subject / Exam</th>
+                    <th class="text-end" style="width: 110px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr class="question-row"
+                    data-id="{{ q.id }}"
+                    data-text="{{ q.question_text|lower }}"
+                    data-exam="{{ q.exam.name|default:'Unassigned'|lower }}"
+                    data-exam_id="{{ q.exam_id|default:'__none__' }}"
+                    data-answer="{{ q.correct_answer }}">
+                    <td><input type="checkbox" class="form-check-input row-check" value="{{ q.id }}"></td>
+                    <td class="text-secondary small">{{ forloop.counter }}</td>
+                    <td style="max-width: 380px;"><div class="fw-medium text-dark">{{ q.question_text|truncatechars:120 }}</div></td>
+                    <td><span class="badge-pill bg-light text-dark border fw-bold">{{ q.correct_answer }}</span></td>
+                    <td><div class="text-success small fw-bold">{{ q.get_correct_answer_text|truncatechars:60 }}</div></td>
+                    <td>
+                        {% if q.exam %}
+                        <a href="{% url 'admin_exam_detail' q.exam.id %}" class="badge-pill bg-light text-primary-orange text-decoration-none border fw-semibold">
+                            <i class="bi bi-tag-fill"></i> {{ q.exam.name }}
+                        </a>
+                        {% else %}
+                        <span class="text-secondary small fw-medium">— Unassigned —</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'admin_edit_question' q.pk %}" class="btn btn-sm btn-light border text-secondary" title="Edit">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button onclick="showDeleteConfirm('Question', '{{ q.question_text|truncatechars:55|escapejs }}', '{% url 'admin_delete_question' q.pk %}')" 
+                                    class="btn btn-sm btn-light border text-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-5 text-secondary">No questions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .sortable { cursor: pointer; user-select: none; }
+    .sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75rem; }
+    .sortable.asc::after { content: " ↑"; opacity: 1; color: #f97316; }
+    .sortable.desc::after { content: " ↓"; opacity: 1; color: #f97316; }
+    .bulk-bar {
+        background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px;
+        padding: 12px 16px; margin-bottom: 16px;
+        display: none; align-items: center; gap: 12px;
+    }
+    .bulk-bar.show { display: flex; }
+</style>
+
+<!-- ── Bulk Import Modal ──────────────────────────────────────── -->
+<div class="modal fade" id="bulkImportQuestionsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Bulk Import Questions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data" action="{% url 'admin_bulk_import_questions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="redirect_to" value="admin_questions">
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-4">
+                        Upload CSV or Excel with columns:
+                        <code>Question, OptionA, OptionB, OptionC, OptionD, Answer</code>.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label">Choose File</label>
+                        <input type="file" name="file" class="form-control" accept=".csv,.xlsx,.xls" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target Exam (optional)</label>
+                        <select name="exam_id" class="form-select">
+                            <option value="">— Unassigned (general bank) —</option>
+                            {% for exam in exams %}
+                            <option value="{{ exam.id }}">{{ exam.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="replace_existing" id="replaceChk">
+                        <label class="form-check-label small fw-medium" for="replaceChk">Replace existing first</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light fw-bold text-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-orange">Start Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const tbody = document.querySelector('#qTable tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr.question-row'));
+    const search = document.getElementById('questionSearch');
+    const examFilter = document.getElementById('examFilter');
+    const ansFilter = document.getElementById('answerFilter');
+    const sortBy = document.getElementById('sortBy');
+    const counter = document.getElementById('visibleCount');
+    const headers = document.querySelectorAll('.sortable');
+    const selAll = document.getElementById('selAll');
+    const bulkBar = document.getElementById('bulkBar');
+    const bulkCount = document.getElementById('bulkCount');
+    const hiddenIds = document.getElementById('hiddenIds');
+
+    function applyFilter() {
+        const q = (search.value || '').toLowerCase();
+        const e = examFilter.value;
+        const a = ansFilter.value;
+        let visible = 0;
+        rows.forEach(r => {
+            const blob = (r.dataset.text + ' ' + r.dataset.exam + ' ' + r.innerText).toLowerCase();
+            const matchesQ = !q || blob.includes(q);
+            const matchesE = !e || r.dataset.exam_id === e;
+            const matchesA = !a || r.dataset.answer === a;
+            const show = matchesQ && matchesE && matchesA;
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        counter.textContent = visible + ' of ' + rows.length;
+        refreshSelection();
+    }
+
+    function applySort(key) {
+        const desc = key.startsWith('-');
+        const k = desc ? key.slice(1) : key;
+        const numeric = k === 'id';
+        const sorted = rows.slice().sort((a, b) => {
+            let av = a.dataset[k] || '';
+            let bv = b.dataset[k] || '';
+            if (numeric) { av = parseFloat(av) || 0; bv = parseFloat(bv) || 0; return desc ? bv - av : av - bv; }
+            return desc ? bv.localeCompare(av) : av.localeCompare(bv);
+        });
+        sorted.forEach(r => tbody.appendChild(r));
+    }
+
+    function refreshSelection() {
+        const checked = rows.filter(r => r.querySelector('.row-check')?.checked && r.style.display !== 'none');
+        bulkCount.textContent = checked.length;
+        bulkBar.classList.toggle('show', checked.length > 0);
+        hiddenIds.innerHTML = checked.map(r => `<input type="hidden" name="ids" value="${r.dataset.id}">`).join('');
+    }
+
+    window.clearSelection = function() {
+        rows.forEach(r => { const c = r.querySelector('.row-check'); if (c) c.checked = false; });
+        selAll.checked = false;
+        refreshSelection();
+    };
+
+    search?.addEventListener('input', applyFilter);
+    examFilter?.addEventListener('change', applyFilter);
+    ansFilter?.addEventListener('change', applyFilter);
+    sortBy?.addEventListener('change', () => applySort(sortBy.value));
+
+    headers.forEach(h => h.addEventListener('click', () => {
+        const k = h.dataset.sort;
+        const isAsc = !h.classList.contains('asc');
+        headers.forEach(x => x.classList.remove('asc','desc'));
+        h.classList.add(isAsc ? 'asc' : 'desc');
+        applySort((isAsc ? '' : '-') + k);
+    }));
+
+    selAll?.addEventListener('change', () => {
+        rows.forEach(r => {
+            if (r.style.display !== 'none') {
+                const c = r.querySelector('.row-check');
+                if (c) c.checked = selAll.checked;
+            }
+        });
+        refreshSelection();
+    });
+    rows.forEach(r => {
+        const c = r.querySelector('.row-check');
+        c?.addEventListener('change', refreshSelection);
+    });
+
+    // Default sort: by exam name (subject-wise)
+    applySort('exam');
+    applyFilter();
+})();
+</script>
+{% endblock %}

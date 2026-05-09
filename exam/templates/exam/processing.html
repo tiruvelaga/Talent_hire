@@ -1,0 +1,59 @@
+{% extends 'exam/base.html' %}
+
+{% block title %}Processing Result – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .processing-card {
+        max-width: 500px;
+        margin: 80px auto;
+        padding: 40px;
+        background: white;
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
+        text-align: center;
+    }
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--orange);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .status-text {
+        color: var(--text-dark);
+        font-weight: 600;
+        margin-top: 20px;
+    }
+    .sub-text {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="processing-card">
+        <div class="loader"></div>
+        <h3 class="status-text">Processing Your Result...</h3>
+        <p class="sub-text">Thank you, <strong>{{ candidate_name }}</strong>. Your responses have been received and are being scored. This will only take a moment.</p>
+        <p class="text-muted small mt-4">Page will refresh automatically.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refresh page every 3 seconds to check if result is ready
+    setTimeout(function() {
+        location.reload();
+    }, 3000);
+</script>
+{% endblock %}

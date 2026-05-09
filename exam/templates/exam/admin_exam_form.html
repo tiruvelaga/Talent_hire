@@ -1,0 +1,301 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Create New Exam - Admin Portal{% endblock %}
+{% block nav_set %}active{% endblock %}
+{% block page_title %}New Exam Setup{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'admin_settings' %}" class="text-secondary text-decoration-none small fw-semibold">
+        <i class="bi bi-arrow-left"></i> Back to Exams
+    </a>
+    <h4 class="fw-bold mt-2 mb-0" style="color:#E65C00;">New Exam - Select Candidates, Questions & Settings</h4>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span><i class="bi bi-plus-circle me-2"></i>Exam Setup</span>
+    </div>
+    <div class="p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <label class="form-label">Exam Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Python Developer Screening" required>
+                </div>
+                <div class="col-lg-5">
+                    <label class="form-label">Passing Percentage (%)</label>
+                    <input type="number" name="passing_percentage" class="form-control" min="0" max="100" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Short note about this exam"></textarea>
+                </div>
+                <!-- Candidates - clean checkbox list with search, select-all, count (easy multi-select) -->
+                <div class="col-lg-6">
+                    <label class="form-label">Select Candidates <span id="candidateCount" class="badge bg-primary ms-2">0 selected</span></label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="candidateSearch" class="form-control" placeholder="Search name or Reg ID..." onkeyup="filterCandidates()">
+                        <button type="button" onclick="selectAllCandidates()" class="btn btn-sm btn-outline-primary">All</button>
+                        <button type="button" onclick="clearAllCandidates()" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+                    <div id="candidateList" class="border rounded p-2 bg-light" style="height: 260px; overflow-y: auto; max-height: 260px;">
+                        {% for candidate in candidates %}
+                        <div class="form-check py-1 border-bottom">
+                            <input class="form-check-input" type="checkbox" name="candidate_ids" 
+                                   value="{{ candidate.id }}" id="cand{{ candidate.id }}" onchange="updateCandidateCount()">
+                            <label class="form-check-label small" for="cand{{ candidate.id }}">
+                                {{ candidate.name }} ({{ candidate.registration_id }})
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text small mt-1">Click checkboxes or use All/Clear. Search filters live. Empty = all candidates.</div>
+                </div>
+                <div class="col-lg-6">
+                    <label class="form-label">Select Subjects</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="subjectSearch" class="form-control" placeholder="Filter subjects (e.g. Python)..." onkeyup="filterSubjects()">
+                        <button type="button" onclick="selectAllSubjects()" class="btn btn-sm btn-outline-primary">All</button>
+                        <button type="button" onclick="clearAllSubjects()" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+                    <div id="subjectList" class="border rounded p-2 bg-light" style="height: 200px; overflow-y: auto;">
+                        {% for subject in subjects %}
+                        <div class="form-check py-1">
+                            <input class="form-check-input" type="checkbox" name="subject_ids" 
+                                   value="{{ subject.id }}" id="sub{{ subject.id }}">
+                            <label class="form-check-label" for="sub{{ subject.id }}">{{ subject.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text small mt-1">Multi-select for grouping/reports. Leave empty for all.</div>
+                </div>
+
+                <!-- Questions - clean checkbox list with powerful search + bulk (easy multi-select) -->
+                <div class="col-12 mt-4">
+                    <label class="form-label">Select Questions for Exam <span id="questionCount" class="badge bg-info ms-2">0 selected</span></label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="questionSearch" class="form-control" placeholder="Search questions (e.g. Python, database, pass statement)..." onkeyup="filterQuestions()">
+                        <a href="{% url 'admin_questions' %}" class="btn btn-sm btn-outline-primary" target="_blank" title="Add more via bulk import">
+                            <i class="bi bi-upload"></i> Bulk Import
+                        </a>
+                        <button type="button" onclick="selectAllQuestions()" class="btn btn-sm btn-outline-primary">All</button>
+                        <button type="button" onclick="clearAllQuestions()" class="btn btn-sm btn-outline-secondary">Clear</button>
+                    </div>
+                    <div id="questionList" class="border rounded p-2 bg-light" style="height: 260px; overflow-y: auto; max-height: 260px;">
+                        {% for q in questions %}
+                        <div class="form-check py-1 border-bottom">
+                            <input class="form-check-input" type="checkbox" name="question_ids" 
+                                   value="{{ q.id }}" id="q{{ q.id }}" onchange="updateQuestionCount()">
+                            <label class="form-check-label small" for="q{{ q.id }}">
+                                {{ q.question_text|truncatechars:85 }} [{{ q.correct_answer }}]
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-text small mt-1">Checkboxes for easy multi-select. Search filters instantly. Use Bulk Import to add more. Empty = auto-select by total/subjects.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Number of Questions</label>
+                    <input type="number" name="total_questions" class="form-control" value="20" min="1" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Max Attempts</label>
+                    <input type="number" name="max_attempts" class="form-control" value="1" min="1">
+                </div>
+            </div>
+
+            <!-- Schedule & Scoring (clean, no duplicates) -->
+            <div class="mt-4 border-top pt-4">
+                <h5 class="text-muted mb-3">📅 Schedule</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Start Date & Time</label>
+                        <input type="datetime-local" name="start_time" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Date & Time (optional)</label>
+                        <input type="datetime-local" name="end_time" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number" name="duration_minutes" class="form-control" value="60" min="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 border-top pt-4">
+                <h5 class="text-muted mb-3">⚙️ Scoring & Options</h5>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <div class="d-flex gap-4 pt-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" checked>
+                                <label class="form-check-label" for="shuffleQuestions">Shuffle Questions</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="negative_marking" id="negativeMarking">
+                                <label class="form-check-label" for="negativeMarking">Negative Marking</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_answers" id="showAnswers" checked>
+                                <label class="form-check-label" for="showAnswers">Review Questions</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="results_published" id="resultsPublished" checked>
+                                <label class="form-check-label" for="resultsPublished">Publish Results</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" onclick="showConfirmationModal()" class="btn-orange px-5 py-3 fw-semibold">
+                    <i class="bi bi-eye me-2"></i> Review & Create Exam
+                </button>
+                <a href="{% url 'admin_settings' %}" class="btn btn-light border fw-semibold text-secondary px-4 py-3">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmExamModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-orange text-white">
+                <h5 class="modal-title">Confirm Exam Creation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalSummary">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit Settings</button>
+                <button type="button" onclick="confirmAndCreateExam()" class="btn-orange px-4">
+                    <i class="bi bi-check-circle"></i> Confirm & Create Exam
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple, clean multi-select with checkboxes + live search (no Ctrl-click needed)
+function filterList(listId, searchId, itemClass = '.form-check') {
+    const term = (document.getElementById(searchId).value || '').toLowerCase().trim();
+    const items = document.querySelectorAll(`#${listId} ${itemClass}`);
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = (!term || text.includes(term)) ? '' : 'none';
+    });
+}
+
+function selectAllVisible(listId, nameAttr) {
+    const items = document.querySelectorAll(`#${listId} .form-check`);
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb && item.style.display !== 'none') cb.checked = true;
+    });
+    if (nameAttr === 'candidate_ids') updateCandidateCount();
+    if (nameAttr === 'question_ids') updateQuestionCount();
+}
+
+function clearAllVisible(listId, nameAttr) {
+    const items = document.querySelectorAll(`#${listId} .form-check`);
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb) cb.checked = false;
+    });
+    if (nameAttr === 'candidate_ids') updateCandidateCount();
+    if (nameAttr === 'question_ids') updateQuestionCount();
+}
+
+function updateCandidateCount() {
+    const checked = document.querySelectorAll('#candidateList input[type="checkbox"]:checked').length;
+    const countEl = document.getElementById('candidateCount');
+    if (countEl) countEl.textContent = `${checked} selected`;
+}
+
+function updateQuestionCount() {
+    const checked = document.querySelectorAll('#questionList input[type="checkbox"]:checked').length;
+    const countEl = document.getElementById('questionCount');
+    if (countEl) countEl.textContent = `${checked} selected`;
+}
+
+// Public functions called from buttons/onkeyup
+function filterCandidates() { filterList('candidateList', 'candidateSearch'); }
+function selectAllCandidates() { selectAllVisible('candidateList', 'candidate_ids'); }
+function clearAllCandidates() { clearAllVisible('candidateList', 'candidate_ids'); }
+
+function filterSubjects() { filterList('subjectList', 'subjectSearch'); }
+function selectAllSubjects() { selectAllVisible('subjectList', 'subject_ids'); }
+function clearAllSubjects() { clearAllVisible('subjectList', 'subject_ids'); }
+
+function filterQuestions() { filterList('questionList', 'questionSearch'); }
+function selectAllQuestions() { selectAllVisible('questionList', 'question_ids'); }
+function clearAllQuestions() { clearAllVisible('questionList', 'question_ids'); }
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateCandidateCount();
+    updateQuestionCount();
+    
+    // Auto-update counts when any checkbox changes
+    document.querySelectorAll('input[type="checkbox"][name$="_ids"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            if (cb.name === 'candidate_ids') updateCandidateCount();
+            if (cb.name === 'question_ids') updateQuestionCount();
+        });
+    });
+});
+
+function showConfirmationModal() {
+    const form = document.querySelector('form');
+    const candCount = document.getElementById('candidateCount') ? document.getElementById('candidateCount').textContent : '0 selected';
+    const qCount = document.getElementById('questionCount') ? document.getElementById('questionCount').textContent : '0 selected';
+    const summaryHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-orange">Exam Details</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Name:</strong> ${form.querySelector('[name="name"]').value || 'Untitled Exam'}</li>
+                    <li><strong>Total Questions:</strong> ${form.querySelector('[name="total_questions"]').value}</li>
+                    <li><strong>Duration:</strong> ${form.querySelector('[name="duration_minutes"]').value} minutes</li>
+                    <li><strong>Passing %:</strong> ${form.querySelector('[name="passing_percentage"]').value}%</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-orange">Selections & Schedule</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Candidates:</strong> ${candCount}</li>
+                    <li><strong>Questions:</strong> ${qCount} (or auto by total/subjects)</li>
+                    <li><strong>Start:</strong> ${form.querySelector('[name="start_time"]').value || 'Immediate'}</li>
+                    <li><strong>End:</strong> ${form.querySelector('[name="end_time"]').value || 'No end'}</li>
+                    <li><strong>Shuffle:</strong> ${document.getElementById('shuffleQuestions').checked ? 'Yes' : 'No'}</li>
+                    <li><strong>Negative Marking:</strong> ${document.getElementById('negativeMarking').checked ? 'Yes' : 'No'}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3 small">
+            <i class="bi bi-info-circle"></i> After confirmation, the exam will be created with selected candidates/questions. 
+            You can edit later from the detail page.
+        </div>
+    `;
+    document.getElementById('modalSummary').innerHTML = summaryHTML;
+    const modal = new bootstrap.Modal(document.getElementById('confirmExamModal'));
+    modal.show();
+}
+
+function confirmAndCreateExam() {
+    // Submit the form
+    const form = document.querySelector('form');
+    form.submit();
+}
+</script>
+{% endblock %}

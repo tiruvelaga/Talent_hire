@@ -1,0 +1,196 @@
+{% extends 'exam/base.html' %}
+{% block title %}Help & Support – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-head {
+        background: linear-gradient(135deg, rgba(249,115,22,0.18), rgba(168,85,247,0.18)),
+                    rgba(255,255,255,0.78);
+        backdrop-filter: saturate(180%) blur(18px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 22px;
+        padding: 26px 30px;
+        margin-bottom: 22px;
+    }
+    .page-head h2 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px; }
+    .page-head p { color: var(--text-muted); margin: 0; }
+
+    .glass-section {
+        background: var(--glass-bg-strong);
+        backdrop-filter: saturate(180%) blur(14px);
+        border: 1px solid rgba(255,255,255,0.85);
+        border-radius: 18px;
+        padding: 22px 24px;
+        margin-bottom: 22px;
+        box-shadow: 0 6px 20px rgba(2,6,23,0.05);
+    }
+    .glass-section h3 { font-size: 1.05rem; font-weight: 800; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+
+    .form-input, .form-textarea {
+        width: 100%;
+        border: 1px solid rgba(226,232,240,0.85);
+        background: rgba(255,255,255,0.6);
+        border-radius: 10px;
+        padding: 11px 14px;
+        font-size: 0.92rem;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus {
+        outline: none;
+        border-color: rgba(249,115,22,0.45);
+        box-shadow: 0 0 0 4px rgba(249,115,22,0.10);
+        background: white;
+    }
+    .form-textarea { resize: vertical; min-height: 110px; }
+    .form-label { font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; display: block; color: var(--text-main); }
+
+    .faq-item {
+        border-top: 1px solid rgba(226,232,240,0.7);
+        padding: 12px 0;
+        cursor: pointer;
+    }
+    .faq-item:first-of-type { border-top: 0; }
+    .faq-q { font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin: 0; font-size: 0.92rem; }
+    .faq-toggle { color: var(--primary-orange); font-size: 1.1rem; transition: transform 0.25s; }
+    .faq-item.open .faq-toggle { transform: rotate(45deg); }
+    .faq-a { display: none; color: var(--text-muted); margin-top: 8px; font-size: 0.88rem; line-height: 1.5; }
+    .faq-item.open .faq-a { display: block; }
+
+    .query-row {
+        display: flex; gap: 14px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(248,250,252,0.6);
+        border: 1px solid rgba(226,232,240,0.7);
+        margin-bottom: 10px;
+    }
+    .query-row .icon {
+        width: 40px; height: 40px; flex-shrink: 0;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1rem;
+    }
+    .query-row.open    .icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .query-row.answered .icon { background: linear-gradient(135deg, #10b981, #059669); }
+    .query-row.closed   .icon { background: linear-gradient(135deg, #64748b, #475569); }
+    .query-row .body { flex: 1; min-width: 0; }
+    .query-row .subj { font-weight: 700; font-size: 0.92rem; margin: 0 0 4px; }
+    .query-row .msg { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 4px; }
+    .query-row .resp {
+        margin-top: 8px; padding: 10px 12px;
+        background: rgba(220, 252, 231, 0.5);
+        border-left: 3px solid #10b981;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    .query-row .meta { font-size: 0.74rem; color: #94a3b8; margin-top: 4px; }
+
+    .empty-mini { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.88rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h2><i class="bi bi-life-preserver text-primary-orange"></i> Help & Support</h2>
+    <p>Find answers to common questions or raise a query directly with the admin team.</p>
+</div>
+
+<div class="row g-4">
+    <!-- ── Raise Query ─────────────────────────────────── -->
+    <div class="col-lg-6">
+        <div class="glass-section">
+            <h3><i class="bi bi-pencil-square text-primary-orange"></i> Raise a Query to Admin</h3>
+            <form method="post" action="{% url 'help_support' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="qSubject">Subject</label>
+                    <input type="text" id="qSubject" name="subject" class="form-input" placeholder="e.g., Cannot access exam, Login issue, Result query…" maxlength="200" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="qMessage">Describe your issue</label>
+                    <textarea id="qMessage" name="message" class="form-textarea" placeholder="Provide detailed information so admin can help you faster…" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary-orange">
+                    <i class="bi bi-send-fill"></i> Submit Query
+                </button>
+            </form>
+        </div>
+
+        <div class="glass-section">
+            <h3><i class="bi bi-clock-history text-primary-orange"></i> My Queries ({{ queries|length }})</h3>
+            {% for q in queries %}
+            <div class="query-row {{ q.status|lower }}">
+                <div class="icon">
+                    {% if q.status == 'Open' %}<i class="bi bi-hourglass-split"></i>
+                    {% elif q.status == 'Answered' %}<i class="bi bi-check2-circle"></i>
+                    {% else %}<i class="bi bi-archive"></i>{% endif %}
+                </div>
+                <div class="body">
+                    <p class="subj">
+                        {{ q.subject }}
+                        <span class="badge-pill {% if q.status == 'Open' %}badge-warning{% elif q.status == 'Answered' %}badge-success{% else %}badge-info{% endif %}" style="margin-left:6px;">{{ q.status }}</span>
+                    </p>
+                    <p class="msg">{{ q.message }}</p>
+                    {% if q.admin_response %}
+                    <div class="resp"><strong>Admin reply:</strong> {{ q.admin_response }}</div>
+                    {% endif %}
+                    <div class="meta"><i class="bi bi-clock"></i> raised {{ q.created_at|timesince }} ago</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-mini">
+                <i class="bi bi-inbox" style="font-size:1.8rem;opacity:0.35;display:block;margin-bottom:6px;"></i>
+                You haven't raised any queries yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── FAQs / Contact ───────────────────────────────── -->
+    <div class="col-lg-6">
+        <div class="glass-section">
+            <h3><i class="bi bi-question-circle text-primary-orange"></i> Frequently Asked Questions</h3>
+
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <p class="faq-q">How do I login to the exam portal? <span class="faq-toggle">+</span></p>
+                <div class="faq-a">Use the Registration ID and Password provided by the recruitment team. Default password is your Registration ID — change it from your profile after first login.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <p class="faq-q">When will my exam results be published? <span class="faq-toggle">+</span></p>
+                <div class="faq-a">Results are typically published within 2–3 business days. You will see a notification in your inbox the moment they are released.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <p class="faq-q">What if my internet drops during the exam? <span class="faq-toggle">+</span></p>
+                <div class="faq-a">Your answers are saved server-side. Reconnect within a few minutes and resume from where you left off. The timer continues running.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <p class="faq-q">Can I retake the exam? <span class="faq-toggle">+</span></p>
+                <div class="faq-a">Each exam has a maximum-attempts setting controlled by the admin. Check the exam card on your dashboard for the limit.</div>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <p class="faq-q">My result is held — what does that mean? <span class="faq-toggle">+</span></p>
+                <div class="faq-a">The admin has temporarily withheld it. Raise a query with your Registration ID and the admin team will get back to you.</div>
+            </div>
+        </div>
+
+        <div class="glass-section">
+            <h3><i class="bi bi-headset text-primary-orange"></i> Direct Contact</h3>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;display:flex;align-items:center;justify-content:center;"><i class="bi bi-envelope-fill"></i></div>
+                <div>
+                    <div style="font-weight:700;font-size:0.9rem;">support@talenthire.com</div>
+                    <div style="color:var(--text-muted);font-size:0.78rem;">Email — response within 24 hours</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:white;display:flex;align-items:center;justify-content:center;"><i class="bi bi-telephone-fill"></i></div>
+                <div>
+                    <div style="font-weight:700;font-size:0.9rem;">+91 98765 43210</div>
+                    <div style="color:var(--text-muted);font-size:0.78rem;">Mon–Fri 9 AM – 6 PM IST</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

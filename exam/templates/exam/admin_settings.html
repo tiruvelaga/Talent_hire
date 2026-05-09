@@ -1,0 +1,190 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}All Exams – Admin Portal{% endblock %}
+{% block nav_set %}active{% endblock %}
+{% block page_title %}All Exams{% endblock %}
+
+{% block content %}
+
+<!-- ── Toolbar: search / filter / new ────────────────────── -->
+<div class="admin-card mb-4">
+    <div class="p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Search Exams</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="examSearch" placeholder="Name or description...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Filter Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sort By</label>
+                <select class="form-select" id="sortBy">
+                    <option value="id">ID</option>
+                    <option value="name">Name (A→Z)</option>
+                    <option value="-name">Name (Z→A)</option>
+                    <option value="-q_count">Most Questions</option>
+                    <option value="-a_count">Most Attempts</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'admin_add_exam' %}" class="btn-orange w-100 py-2"><i class="bi bi-plus-lg"></i> New Exam</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Exams Table ─────────────────────────────────────── -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span>All Exams</span>
+        <span class="badge bg-light text-secondary" id="visibleCount">{{ exams|length }} Total</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table admin-table" id="examTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="id">#</th>
+                    <th class="sortable" data-sort="name">Exam Name</th>
+                    <th>Schedule</th>
+                    <th class="sortable" data-sort="duration">Duration</th>
+                    <th class="sortable" data-sort="q_count">Questions</th>
+                    <th class="sortable" data-sort="a_count">Attempts</th>
+                    <th class="sortable" data-sort="status">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr class="exam-row clickable"
+                    data-id="{{ exam.id }}"
+                    data-name="{{ exam.name|lower }}"
+                    data-duration="{{ exam.duration_minutes }}"
+                    data-q_count="{{ exam.q_count }}"
+                    data-a_count="{{ exam.a_count }}"
+                    data-status="{% if exam.is_active %}active{% else %}inactive{% endif %}"
+                    data-detail-url="{% url 'admin_exam_detail' exam.id %}">
+                    <td class="text-secondary">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="fw-bold">{{ exam.name }}</div>
+                        <div class="small text-muted">{{ exam.description|truncatechars:60|default:"—" }}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-medium"><i class="bi bi-calendar-event me-1"></i> {{ exam.start_time|date:"d M Y, h:i A"|default:"Open" }}</div>
+                        <div class="small text-muted"><i class="bi bi-calendar-x me-1"></i> {{ exam.end_time|date:"d M Y, h:i A"|default:"No end" }}</div>
+                    </td>
+                    <td class="fw-medium">{{ exam.duration_minutes }} min</td>
+                    <td><span class="badge bg-light text-dark">{{ exam.q_count }}</span></td>
+                    <td><span class="badge bg-light text-dark">{{ exam.a_count }}</span></td>
+                    <td>
+                        {% if exam.is_active %}
+                        <span class="badge-pill badge-success">Active</span>
+                        {% else %}
+                        <span class="badge-pill badge-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-2 justify-content-end" onclick="event.stopPropagation()">
+                            <a href="{% url 'admin_exam_detail' exam.id %}" class="btn btn-sm btn-light border text-primary-orange" title="View Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'admin_edit_exam' exam.id %}" class="btn btn-sm btn-light border text-secondary" title="Configuration">
+                                <i class="bi bi-sliders"></i>
+                            </a>
+                            <form method="POST" action="{% url 'admin_delete_exam' exam.id %}" style="display:inline;" onsubmit="return confirm('Delete this exam? Questions linked to it will be unassigned.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light border text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center py-5 text-secondary">
+                    <i class="bi bi-info-circle d-block mb-2" style="font-size:2rem; opacity:.3;"></i>
+                    No exams created yet.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .clickable { cursor: pointer; transition: background 0.15s; }
+    .clickable:hover { background: #fff7ed; }
+    .sortable { cursor: pointer; user-select: none; }
+    .sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75rem; }
+    .sortable.asc::after { content: " ↑"; opacity: 1; color: #f97316; }
+    .sortable.desc::after { content: " ↓"; opacity: 1; color: #f97316; }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const tbody = document.querySelector('#examTable tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr.exam-row'));
+    const search = document.getElementById('examSearch');
+    const status = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+    const counter = document.getElementById('visibleCount');
+    const headers = document.querySelectorAll('.sortable');
+
+    function applyFilter() {
+        const q = (search.value || '').toLowerCase();
+        const s = status.value;
+        let visible = 0;
+        rows.forEach(r => {
+            const name = r.dataset.name;
+            const desc = r.querySelector('.text-muted')?.innerText.toLowerCase() || '';
+            const matchesQ = !q || name.includes(q) || desc.includes(q);
+            const matchesS = !s || r.dataset.status === s;
+            const show = matchesQ && matchesS;
+            r.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        counter.textContent = visible + ' of ' + rows.length;
+    }
+    function applySort(key) {
+        const desc = key.startsWith('-');
+        const k = desc ? key.slice(1) : key;
+        const numeric = ['id','duration','q_count','a_count'].includes(k);
+        const sorted = rows.slice().sort((a, b) => {
+            let av = a.dataset[k] ?? '';
+            let bv = b.dataset[k] ?? '';
+            if (numeric) { av = parseFloat(av) || 0; bv = parseFloat(bv) || 0; return desc ? bv - av : av - bv; }
+            return desc ? bv.localeCompare(av) : av.localeCompare(bv);
+        });
+        sorted.forEach(r => tbody.appendChild(r));
+    }
+    search.addEventListener('input', applyFilter);
+    status.addEventListener('change', applyFilter);
+    sortBy.addEventListener('change', () => applySort(sortBy.value));
+
+    // Header click sort
+    headers.forEach(h => h.addEventListener('click', () => {
+        const k = h.dataset.sort;
+        const isAsc = !h.classList.contains('asc');
+        headers.forEach(x => x.classList.remove('asc','desc'));
+        h.classList.add(isAsc ? 'asc' : 'desc');
+        applySort((isAsc ? '' : '-') + k);
+    }));
+
+    // Row click → detail
+    rows.forEach(r => r.addEventListener('click', () => {
+        window.location.href = r.dataset.detailUrl;
+    }));
+
+    applyFilter();
+})();
+</script>
+{% endblock %}

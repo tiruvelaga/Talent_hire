@@ -1,0 +1,89 @@
+{% extends 'exam/base.html' %}
+{% block title %}My Profile – TalentHire{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="glass-card p-5" style="background: rgba(255,255,255,0.92); border: 1px solid rgba(251,146,60,0.2);">
+                <div class="d-flex align-items-center gap-3 mb-5">
+                    <div class="flex-shrink-0" style="width: 64px; height: 64px; background: linear-gradient(135deg, #fb923c, #fcd34d); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 15px rgba(251,146,60,0.3);">
+                        👤
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-dark">My Profile</h2>
+                        <p class="text-muted mb-0">Manage your account • {{ attempted_count }} exams attempted</p>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Main Details -->
+                    <div class="col-lg-5">
+                        <div class="p-4 rounded-4" style="background: rgba(251, 146, 60, 0.06); border: 1px solid rgba(251,146,60,0.15);">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div>
+                                    <div class="small text-uppercase fw-semibold mb-1" style="color: #f59e0b;">Name</div>
+                                    <div class="fs-4 fw-semibold text-dark">{{ candidate.name }}</div>
+                                </div>
+                                <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #b45309; font-size: 0.8rem;">Active</span>
+                            </div>
+                            <div class="border-top pt-4">
+                                <div class="mb-3">
+                                    <div class="small text-uppercase fw-semibold mb-1" style="color: #f59e0b;">Registration ID</div>
+                                    <code class="fs-5 fw-bold" style="color: #c2410c; background: #fff7ed; padding: 4px 12px; border-radius: 8px;">{{ candidate.registration_id }}</code>
+                                </div>
+                                <div>
+                                    <div class="small text-uppercase fw-semibold mb-1" style="color: #f59e0b;">Mobile</div>
+                                    <div class="fs-5 fw-medium text-dark">{{ candidate.mobile }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="mt-4 row g-3">
+                            <div class="col-6">
+                                <div class="text-center p-3 rounded-3" style="background: rgba(251,146,60,0.08); border: 1px solid rgba(251,146,60,0.2);">
+                                    <div class="fw-bold fs-3 text-orange" style="color: #f59e0b;">{{ attempted_count }}</div>
+                                    <div class="small fw-medium text-muted">Exams Attempted</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-3 rounded-3" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+                                    <div class="fw-bold fs-3 text-success">{{ selected_count }}</div>
+                                    <div class="small fw-medium text-muted">Selected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="col-lg-7">
+                        <div class="p-5 border rounded-4 bg-white">
+                            <h5 class="fw-semibold mb-4 flex items-center gap-2">
+                                <i class="bi bi-shield-lock" style="color: #f59e0b;"></i> Change Password
+                            </h5>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">New Password</label>
+                                    <input type="password" name="new_password" class="form-control form-control-lg" minlength="6" required placeholder="••••••••">
+                                    <div class="form-text mt-2">Minimum 6 characters. Use this for future logins.</div>
+                                </div>
+                                <button type="submit" class="btn w-100 py-3 fw-semibold" style="background: linear-gradient(135deg, #fb923c, #f59e0b); color: white; border: none; border-radius: 12px;">
+                                    Update Password
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'candidate_dashboard' %}" class="btn btn-light border px-5 py-2.5 rounded-3 fw-medium">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

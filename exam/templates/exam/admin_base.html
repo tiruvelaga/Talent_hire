@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Portal – TalentHire{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --sidebar-active: #1e293b;
+            --sidebar-text: #94a3b8;
+            --sidebar-text-active: #f8fafc;
+            --primary-orange: #f97316;
+            --primary-gradient: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            --bg-body: #f8fafc;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --card-border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: #111827; min-height: 100vh; display: flex; }
+
+        /* ── Sidebar ─────────────────────────────────────────── */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .sidebar-brand {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+        .brand-logo {
+            background: var(--primary-gradient);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        .brand-name { font-weight: 800; font-size: 1.1rem; }
+        .brand-sub { font-size: 0.75rem; color: var(--sidebar-text); display: block; }
+
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+            font-weight: 600;
+        }
+        .nav-item i { font-size: 1.1rem; }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .user-info { font-size: 0.85rem; }
+        .user-name { font-weight: 600; display: block; }
+        .user-role { color: var(--sidebar-text); font-size: 0.75rem; }
+
+        .btn-logout {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: var(--sidebar-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* ── Main Content ────────────────────────────────────────── */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+            max-width: calc(100% - 260px);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-title { font-weight: 700; font-size: 1.25rem; margin: 0; }
+        .header-actions { color: #64748b; font-size: 0.85rem; font-weight: 500; }
+
+        /* ── Cards ───────────────────────────────────────────────── */
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            border: var(--card-border);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .admin-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        .admin-card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #edf2f7;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ── Stats ───────────────────────────────────────────────── */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: var(--card-border);
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-label { color: #64748b; font-size: 0.85rem; font-weight: 500; margin-bottom: 8px; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; color: #111827; }
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+
+        /* Delete Modal with blurred backdrop */
+        #deleteConfirmModal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+        #deleteConfirmModal .modal-header {
+            background: linear-gradient(135deg, #cd3917, #b91c1c);
+            color: white;
+            border: none;
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(16px) !important;
+            background-color: rgba(15, 23, 42, 0.72) !important;
+        }
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        /* ── Action Buttons ───────────────────────────────────────── */
+        .action-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            text-decoration: none;
+            color: #111827;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: block;
+        }
+        .action-item:hover {
+            background: white;
+            border-color: #edf2f7;
+            box-shadow: var(--card-shadow);
+            transform: translateY(-2px);
+        }
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 1.2rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            color: #111827;
+        }
+
+        /* ── Tables ──────────────────────────────────────────────── */
+        .admin-table { margin: 0; }
+        .admin-table thead th {
+            background: transparent;
+            border-bottom: 1px solid #edf2f7;
+            padding: 16px 24px;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .admin-table tbody td {
+            padding: 16px 24px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+        }
+        .admin-table tr:last-child td { border-bottom: none; }
+
+        .badge-pill {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        /* ── Buttons ─────────────────────────────────────────────── */
+        .btn-orange {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 22px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+        }
+        .btn-orange:hover { 
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            color: white; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3);
+        }
+
+        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+        .form-switch .form-check-input:checked { background-color: var(--primary-orange); border-color: var(--primary-orange); }
+
+        /* ── Custom Utilities ────────────────────────────────────── */
+        .bg-light-blue { background: #eff6ff; color: #1d4ed8; }
+        .bg-light-purple { background: #f5f3ff; color: #6d28d9; }
+        .bg-light-green { background: #ecfdf5; color: #059669; }
+        .bg-light-red { background: #fef2f2; color: #dc2626; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<aside class="sidebar">
+    <a href="{% url 'admin_dashboard' %}" class="sidebar-brand">
+        <div class="brand-logo"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div>
+            <span class="brand-name">TalentHire</span>
+            <span class="brand-sub">Admin Panel</span>
+        </div>
+    </a>
+
+    <nav class="nav-menu">
+        <a href="{% url 'admin_dashboard' %}" class="nav-item {% block nav_dash %}{% endblock %}">
+            <i class="bi bi-grid-fill"></i> Dashboard
+        </a>
+        <a href="{% url 'admin_candidates' %}" class="nav-item {% block nav_cand %}{% endblock %}">
+            <i class="bi bi-people-fill"></i> Candidates
+        </a>
+        <a href="{% url 'admin_questions' %}" class="nav-item {% block nav_ques %}{% endblock %}">
+            <i class="bi bi-question-circle-fill"></i> Questions
+        </a>
+        <a href="{% url 'admin_settings' %}" class="nav-item {% block nav_set %}{% endblock %}">
+            <i class="bi bi-journal-text"></i> Exams
+        </a>
+        <a href="{% url 'admin_results' %}" class="nav-item {% block nav_res %}{% endblock %}">
+            <i class="bi bi-bar-chart-fill"></i> Results
+        </a>
+        <a href="{% url 'admin_queries' %}" class="nav-item {% block nav_query %}{% endblock %}">
+            <i class="bi bi-chat-dots-fill"></i> Query/Ticket
+        </a>
+        <a href="{% url 'admin_pending_registrations' %}" class="nav-item {% block nav_pending %}{% endblock %}">
+            <i class="bi bi-person-plus-fill"></i> Pending Registrations
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">A</div>
+            <div class="user-info">
+                <span class="user-name">{{ request.user.username|capfirst }}</span>
+                <span class="user-role">Superuser</span>
+            </div>
+        </div>
+        <a href="{% url 'admin_logout' %}" class="btn-logout">
+            <i class="bi bi-box-arrow-left"></i> Logout
+        </a>
+    </div>
+</aside>
+
+<main class="main-content">
+    <header class="page-header">
+        <h2 class="page-title">{% block page_title %}Dashboard{% endblock %}</h2>
+        <div class="header-actions">
+            Welcome, Admin
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" style="border-radius: 12px;">
+            <i class="bi bi-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Reusable Small Delete Confirmation Popup (softer red, reduced size) -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 340px;">
+        <div class="modal-content shadow-xl">
+            <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #f87171, #ef4444);">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-trash3-fill fs-4 me-2"></i>
+                    <h5 class="modal-title fw-bold mb-0 fs-6" id="deleteModalLabel">Confirm Delete</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center" id="deleteModalBody">
+                <!-- Dynamically populated by JS -->
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0 d-flex justify-content-center gap-2">
+                <button type="button" class="btn btn-light px-4 py-2 fw-semibold rounded-3" data-bs-dismiss="modal">Cancel</button>
+                <form id="modalDeleteForm" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn px-4 py-2 fw-bold text-white rounded-3" style="background: linear-gradient(135deg, #ef4444, #f87171); border: none;">
+                        <i class="bi bi-trash me-2"></i>Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+
+<script>
+// Global helper for small inline delete popup with blurred background (softer red)
+function showDeleteConfirm(type, name, deleteUrl) {
+    const modalEl = document.getElementById('deleteConfirmModal');
+    const modal = new bootstrap.Modal(modalEl);
+    const body = document.getElementById('deleteModalBody');
+    
+    body.innerHTML = `
+        <div style="font-size: 2.75rem; margin-bottom: 1rem; color: #fee2e2;">🗑️</div>
+        <h5 class="fw-bold text-dark mb-3">Are you sure?</h5>
+        <p class="text-muted mb-2">You are about to delete this <strong>${type}</strong>:</p>
+        <div style="background: #fef2f2; border-radius: 12px; padding: 14px 18px; color: #b45309; font-weight: 600; margin-bottom: 1.25rem; font-size: 0.9rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+            ${name}
+        </div>
+        <div class="text-red-600 small d-flex align-items-center justify-content-center gap-2 mb-4">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span><strong>This action cannot be undone.</strong></span>
+        </div>
+    `;
+    
+    const form = document.getElementById('modalDeleteForm');
+    form.action = deleteUrl;
+    modal.show();
+}
+</script>
+</body>
+</html>

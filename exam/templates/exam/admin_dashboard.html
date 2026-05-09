@@ -1,0 +1,474 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Dashboard – Admin Portal{% endblock %}
+{% block nav_dash %}active{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Hero ───────────────────────────────────────────── */
+    .hero-card {
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(600px circle at 100% 0%, rgba(249,115,22,0.18), transparent 60%),
+            radial-gradient(500px circle at 0% 100%, rgba(168,85,247,0.14), transparent 60%),
+            linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+    }
+    .hero-card h2 { font-size: 1.5rem; font-weight: 800; margin: 0 0 4px; }
+    .hero-card p { color: rgba(255,255,255,0.7); margin: 0; font-size: 0.92rem; }
+    .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .hero-btn {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.18);
+        backdrop-filter: blur(8px);
+        color: white;
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: all 0.2s;
+    }
+    .hero-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: translateY(-1px); }
+    .hero-btn.primary {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        border-color: transparent;
+        box-shadow: 0 6px 18px rgba(249,115,22,0.4);
+    }
+    .hero-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(249,115,22,0.5); }
+
+    /* ── Premium KPI ────────────────────────────────────── */
+    .kpi {
+        background: white;
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .kpi:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(2,6,23,0.08); }
+    .kpi.clickable { cursor: pointer; }
+    .kpi.clickable:hover { border-color: #f97316; }
+    .kpi::after {
+        content: '';
+        position: absolute; right: -30px; top: -30px;
+        width: 120px; height: 120px;
+        opacity: 0.12;
+        border-radius: 50%;
+        background: var(--accent, #f97316);
+        pointer-events: none;
+    }
+    .kpi .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .kpi .label { font-size: 0.78rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; }
+    .kpi .value { font-size: 1.9rem; font-weight: 800; color: #0f172a; line-height: 1; margin-bottom: 4px; }
+    .kpi .sub { font-size: 0.78rem; color: #64748b; }
+    .kpi .icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        background: var(--accent-bg, #fff7ed);
+        color: var(--accent, #f97316);
+        flex-shrink: 0;
+    }
+    .kpi .arrow { color: #cbd5e1; font-size: 1rem; transition: all 0.2s; }
+    .kpi.clickable:hover .arrow { color: #f97316; transform: translateX(2px); }
+
+    /* ── Section Card ───────────────────────────────────── */
+    .section-card {
+        background: white;
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .section-card-head {
+        padding: 18px 22px;
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .section-card-head h5 { font-size: 1rem; font-weight: 700; margin: 0; color: #0f172a; }
+    .section-card-head a {
+        font-size: 0.82rem; color: #f97316;
+        text-decoration: none; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 4px;
+        transition: gap 0.2s;
+    }
+    .section-card-head a:hover { gap: 8px; }
+    .section-card-body { padding: 18px 22px; }
+
+    /* ── Exam Tile ──────────────────────────────────────── */
+    .exam-tile {
+        display: block;
+        background: #fafbfc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+    .exam-tile:hover {
+        background: white;
+        border-color: #f97316;
+        box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+        transform: translateY(-1px);
+        color: inherit;
+    }
+    .exam-tile .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 12px; }
+    .exam-tile h6 { font-size: 0.98rem; font-weight: 700; margin: 0 0 2px; color: #0f172a; }
+    .exam-tile .code { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .status-pill.active   { background: #ecfdf5; color: #065f46; }
+    .status-pill.upcoming { background: #eff6ff; color: #1e40af; }
+    .status-pill.completed{ background: #f1f5f9; color: #475569; }
+
+    .pill-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .pill-tags span {
+        font-size: 0.7rem; font-weight: 600;
+        padding: 3px 9px; border-radius: 999px;
+        background: #f1f5f9; color: #475569;
+    }
+
+    .mini-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .mini-stats > div {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        text-align: center;
+    }
+    .mini-stats .num { font-size: 1.1rem; font-weight: 800; color: #0f172a; line-height: 1; }
+    .mini-stats .lbl { font-size: 0.66rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.3px; }
+
+    .exam-tile .meta {
+        display: flex; justify-content: space-between;
+        font-size: 0.74rem; color: #94a3b8;
+        padding-top: 10px;
+        border-top: 1px dashed #e2e8f0;
+    }
+    .exam-cards-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    @media (max-width: 991px) {
+        .exam-cards-row { grid-template-columns: 1fr; }
+    }
+
+    /* ── Recent attempts table ──────────────────────────── */
+    .at-table { width: 100%; }
+    .at-table th, .at-table td { padding: 10px 22px; vertical-align: middle; }
+    .at-table th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #64748b;
+        font-weight: 700;
+        background: #fafbfc;
+        border-top: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .at-table td { font-size: 0.86rem; border-bottom: 1px solid #f1f5f9; }
+    .at-table tr:last-child td { border-bottom: 0; }
+    .at-table tr:hover td { background: #fff7ed; }
+
+    .empty-mini {
+        text-align: center; padding: 36px 18px;
+        color: #94a3b8; font-size: 0.88rem;
+    }
+    .empty-mini i { font-size: 2.4rem; opacity: 0.3; display: block; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<div class="hero-card">
+    <h2>Welcome back, {{ request.user.username|capfirst }}</h2>
+    <p>Here's what's happening across all exams today.</p>
+    <div class="hero-actions">
+        <a href="{% url 'admin_add_exam' %}" class="hero-btn primary"><i class="bi bi-plus-lg"></i> New Exam</a>
+        <a href="{% url 'admin_settings' %}" class="hero-btn"><i class="bi bi-grid"></i> All Exams</a>
+        <button type="button" class="hero-btn" data-bs-toggle="modal" data-bs-target="#addCandidateModal"><i class="bi bi-person-plus"></i> Add Candidate</button>
+        <button type="button" class="hero-btn" data-bs-toggle="modal" data-bs-target="#addQuestionModal"><i class="bi bi-question-circle"></i> Add Question</button>
+        <a href="{% url 'admin_results' %}" class="hero-btn"><i class="bi bi-bar-chart"></i> Results</a>
+    </div>
+</div>
+
+<!-- ── KPIs ─────────────────────────────────────────────── -->
+<div class="row g-3 mb-3">
+    <div class="col-xl col-md-4 col-sm-6">
+        <a href="{% url 'admin_settings' %}" class="kpi clickable text-decoration-none d-block" style="--accent:#7c3aed; --accent-bg:#f3e8ff;">
+            <div class="top">
+                <div class="icon"><i class="bi bi-file-earmark-text"></i></div>
+                <i class="bi bi-arrow-up-right arrow"></i>
+            </div>
+            <div class="value">{{ total_exams }}</div>
+            <div class="label mt-1">Total Exams</div>
+            <div class="sub mt-1"><span class="text-success fw-semibold">●</span> {{ active_exams }} active</div>
+        </a>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <a href="{% url 'admin_candidates' %}" class="kpi clickable text-decoration-none d-block" style="--accent:#2563eb; --accent-bg:#dbeafe;">
+            <div class="top">
+                <div class="icon"><i class="bi bi-people-fill"></i></div>
+                <i class="bi bi-arrow-up-right arrow"></i>
+            </div>
+            <div class="value">{{ total_candidates }}</div>
+            <div class="label mt-1">Candidates</div>
+            <div class="sub mt-1">Across all exams</div>
+        </a>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <a href="{% url 'admin_results' %}?filter=selected" class="kpi clickable text-decoration-none d-block" style="--accent:#059669; --accent-bg:#d1fae5;">
+            <div class="top">
+                <div class="icon"><i class="bi bi-check-circle-fill"></i></div>
+                <i class="bi bi-arrow-up-right arrow"></i>
+            </div>
+            <div class="value">{{ selected_count }}</div>
+            <div class="label mt-1">Selected</div>
+            <div class="sub mt-1">{{ selection_rate }}% selection rate</div>
+        </a>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <a href="{% url 'admin_results' %}?filter=not-selected" class="kpi clickable text-decoration-none d-block" style="--accent:#dc2626; --accent-bg:#fee2e2;">
+            <div class="top">
+                <div class="icon"><i class="bi bi-x-circle-fill"></i></div>
+                <i class="bi bi-arrow-up-right arrow"></i>
+            </div>
+            <div class="value">{{ not_selected }}</div>
+            <div class="label mt-1">Not Selected</div>
+            <div class="sub mt-1">Below threshold</div>
+        </a>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <a href="{% url 'admin_questions' %}" class="kpi clickable text-decoration-none d-block" style="--accent:#0891b2; --accent-bg:#cffafe;">
+            <div class="top">
+                <div class="icon"><i class="bi bi-book-half"></i></div>
+                <i class="bi bi-arrow-up-right arrow"></i>
+            </div>
+            <div class="value">{{ total_questions }}</div>
+            <div class="label mt-1">Questions</div>
+            <div class="sub mt-1">{{ subject_count }} subjects</div>
+        </a>
+    </div>
+</div>
+
+<!-- ── Main two-col ─────────────────────────────────────── -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="section-card">
+            <div class="section-card-head">
+                <h5>Scheduled Exams</h5>
+                <a href="{% url 'admin_settings' %}">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="section-card-body">
+                <div class="exam-cards-row">
+                {% for exam in exam_list|slice:":2" %}
+                <a href="{% url 'admin_exam_detail' exam.id %}" class="exam-tile">
+                    <div class="top">
+                        <div>
+                            <h6>{{ exam.name }}</h6>
+                            <div class="code">{{ exam.code }}</div>
+                        </div>
+                        <span class="status-pill {{ exam.status|lower }}">{{ exam.status }}</span>
+                    </div>
+                    {% if exam.subjects %}
+                    <div class="pill-tags">
+                        {% for subj in exam.subjects %}
+                        <span>{{ subj }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="mini-stats">
+                        <div><div class="num">{{ exam.registered }}</div><div class="lbl">Registered</div></div>
+                        <div><div class="num">{{ exam.attempted }}</div><div class="lbl">Attempted</div></div>
+                        <div><div class="num text-success">{{ exam.selected }}</div><div class="lbl">Selected</div></div>
+                    </div>
+                    <div class="meta">
+                        <span><i class="bi bi-calendar3"></i> {{ exam.date_str|default:"Not scheduled" }}</span>
+                        <span><i class="bi bi-clock"></i> {{ exam.duration }}</span>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="empty-mini">
+                    <i class="bi bi-calendar-x"></i>
+                    No exams scheduled yet.<br>
+                    <a href="{% url 'admin_add_exam' %}" class="text-primary-orange fw-semibold text-decoration-none">Create the first one →</a>
+                </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Recent attempts ──────────────────────────────────── -->
+<div class="section-card">
+    <div class="section-card-head">
+        <h5>Recent Exam Attempts</h5>
+        <a href="{% url 'admin_results' %}">View All <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="table-responsive">
+        <table class="at-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Reg ID</th>
+                    <th>Exam</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in recent_attempts %}
+                <tr>
+                    <td class="fw-semibold">{{ attempt.candidate.name }}</td>
+                    <td class="text-secondary">{{ attempt.candidate.registration_id }}</td>
+                    <td class="text-secondary">{{ attempt.exam.name|default:"—" }}</td>
+                    <td>{{ attempt.score }} / {{ attempt.total }}</td>
+                    <td>{{ attempt.percentage }}%</td>
+                    <td>
+                        {% if attempt.status == 'Selected' %}
+                        <span class="badge-pill badge-success">Selected</span>
+                        {% else %}
+                        <span class="badge-pill badge-danger">Not Selected</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-secondary">{{ attempt.date_taken|date:"d M Y, h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="empty-mini">
+                    <i class="bi bi-inbox"></i>
+                    No attempts yet. Candidates will appear here after they finish their exams.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Add Candidate Modal ──────────────────────────────── -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Candidate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{% url 'admin_add_candidate' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="dashboard">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Arjun Reddy" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number</label>
+                            <input type="text" name="mobile" class="form-control" placeholder="e.g. 9876543210" maxlength="15" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Registration ID</label>
+                            <input type="text" name="registration_id" class="form-control" placeholder="e.g. TH-2024-001" required>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light border fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-orange">Create Candidate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add Question Modal ───────────────────────────────── -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Question</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{% url 'admin_add_question' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="dashboard">
+                    <div class="mb-3">
+                        <label class="form-label">Question Text</label>
+                        <textarea name="question_text" class="form-control" rows="3" placeholder="Type the question..." required></textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="form-label">Option A</label><input type="text" name="option_a" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Option B</label><input type="text" name="option_b" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Option C</label><input type="text" name="option_c" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Option D</label><input type="text" name="option_d" class="form-control" required></div>
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">Correct Answer</label>
+                            <select name="correct_answer" class="form-select" required>
+                                <option value="">Select correct answer</option>
+                                <option value="A">Option A</option>
+                                <option value="B">Option B</option>
+                                <option value="C">Option C</option>
+                                <option value="D">Option D</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assign to Exam</label>
+                            <select name="exam_id" class="form-select">
+                                <option value="">— Unassigned —</option>
+                                {% for exam in exams %}
+                                <option value="{{ exam.id }}">{{ exam.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light border fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-orange">Create Question</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    const modalType = params.get('modal');
+    if (modalType === 'candidate') new bootstrap.Modal(document.getElementById('addCandidateModal')).show();
+    if (modalType === 'question') new bootstrap.Modal(document.getElementById('addQuestionModal')).show();
+});
+</script>
+{% endblock %}

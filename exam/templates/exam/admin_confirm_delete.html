@@ -1,0 +1,38 @@
+{% extends 'exam/admin_base.html' %}
+{% block title %}Confirm Delete – Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="admin-card">
+                <div class="admin-card-header" style="background:linear-gradient(135deg,#cd3917,#b91c1c);">
+                    <span><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</span>
+                </div>
+                <div class="p-4 text-center">
+                    <div style="font-size:3rem; margin-bottom:16px;">🗑️</div>
+                    <h5 style="font-weight:700; color:#f4eeed; margin-bottom:8px;">Are you sure?</h5>
+                    <p style="color:#6b7280; font-size:0.88rem; margin-bottom:4px;">You are about to delete this <strong>{{ object_type }}</strong>:</p>
+                    <p style="background:#fee2e2; border-radius:10px; padding:10px 16px; color:#991b1b; font-weight:600; font-size:0.88rem; margin-bottom:24px;">
+                        {{ object_name }}
+                    </p>
+                    <p style="color:#dc2626; font-size:0.82rem; margin-bottom:24px;">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        This action <strong>cannot be undone</strong>.
+                    </p>
+
+                    <form method="POST" class="d-flex gap-3 justify-content-center">
+                        {% csrf_token %}
+                        <button type="submit" style="padding:11px 28px; border-radius:10px; background:linear-gradient(135deg,#dc2626,#b91c1c); border:none; color:white; font-weight:700; cursor:pointer;">
+                            <i class="bi bi-trash me-1"></i>Yes, Delete
+                        </button>
+                        <a href="{% url cancel_url %}" style="padding:11px 22px; border-radius:10px; border:2px solid #e5e7eb; color:#6b7280; font-weight:600; font-size:0.88rem; text-decoration:none; display:inline-flex; align-items:center;">
+                            Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends 'exam/base.html' %}
+
+{% block title %}Activate Account – TalentHire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activation-page {
+        min-height: calc(100vh - 120px);
+        background: linear-gradient(135deg, #E65C00 0%, #F9A825 60%, #FFD54F 100%);
+        display: flex;
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    .activation-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        animation: slideUp 0.45s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .activation-banner {
+        background: linear-gradient(135deg, #E65C00, #F9A825);
+        padding: 30px 36px 24px;
+        text-align: center;
+        color: white;
+    }
+
+    .icon-wrap {
+        width: 64px;
+        height: 64px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        font-size: 1.8rem;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .activation-form-area {
+        padding: 28px 32px 32px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #374151;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 11px 14px;
+        font-size: 0.92rem;
+        background: #fafafa;
+        transition: all 0.25s ease;
+    }
+
+    .form-control:focus {
+        border-color: #E65C00;
+        box-shadow: 0 0 0 4px rgba(230, 92, 0, 0.1);
+        background: white;
+    }
+
+    .input-group-text {
+        background: #fff3e0;
+        border: 2px solid #e5e7eb;
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+        color: #E65C00;
+    }
+
+    .input-group .form-control {
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .btn-activate {
+        width: 100%;
+        padding: 13px;
+        font-size: 0.97rem;
+        font-weight: 600;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #E65C00, #F9A825);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-activate:hover {
+        background: linear-gradient(135deg, #bf3c00, #E65C00);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(230, 92, 0, 0.35);
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+        gap: 10px;
+    }
+
+    .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+
+    .step-dot.active {
+        background: #E65C00;
+        transform: scale(1.2);
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.83rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .back-link a {
+        color: white;
+        font-weight: 600;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="activation-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+
+                <div class="activation-card">
+                    <div class="activation-banner">
+                        <div class="icon-wrap">
+                            <i class="bi bi-person-check-fill"></i>
+                        </div>
+                        <h4>Account Activation</h4>
+                        <p>Complete your registration to access the exam portal</p>
+                    </div>
+
+                    <div class="activation-form-area">
+                        <!-- Step Dots -->
+                        <div class="step-indicator">
+                            <div class="step-dot {% if step == 1 %}active{% endif %}"></div>
+                            <div class="step-dot {% if step == 2 %}active{% endif %}"></div>
+                        </div>
+
+                        <!-- Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} py-2 mb-3" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if step == 1 %}
+                        <!-- STEP 1: VERIFICATION -->
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="verify">
+
+                            <div class="mb-3">
+                                <label class="form-label">Registration ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                    <input type="text" name="registration_id" class="form-control" 
+                                           placeholder="Enter ID given by admin" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    <input type="tel" name="mobile" class="form-control" 
+                                           placeholder="Enter registered mobile" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-activate">
+                                Verify Identity <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </form>
+
+                        {% else %}
+                        <!-- STEP 2: SET PASSWORD -->
+                        <div class="alert alert-info py-2 mb-4" style="background: #e3f2fd; border-color: #bbdefb; color: #0d47a1;">
+                            <i class="bi bi-info-circle me-2"></i> Identity Verified: <strong>{{ candidate_name }}</strong>
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="activate">
+                            <input type="hidden" name="candidate_id" value="{{ candidate_id }}">
+
+                            <div class="mb-3">
+                                <label class="form-label">Set Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" name="password" class="form-control" 
+                                           placeholder="At least 6 characters" minlength="6" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                    <input type="password" name="confirm_password" class="form-control" 
+                                           placeholder="Repeat password" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-activate">
+                                Activate Account <i class="bi bi-check-circle ms-2"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="back-link">
+                    <a href="{% url 'login' %}"><i class="bi bi-arrow-left me-1"></i>Back to Login</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

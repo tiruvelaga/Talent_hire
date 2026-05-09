@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login – TalentHire</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            background:
+                radial-gradient(900px circle at 12% 18%, rgba(249, 115, 22, 0.18), transparent 55%),
+                radial-gradient(800px circle at 92% 82%, rgba(168, 85, 247, 0.14), transparent 55%),
+                linear-gradient(180deg, #ffffff 0%, #f5f6fb 60%, #fff7ed 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+        .orb-1 { width: 460px; height: 460px; background: rgba(249,115,22,0.30); top: -100px; right: -120px; }
+        .orb-2 { width: 360px; height: 360px; background: rgba(168,85,247,0.22); bottom: -80px; left: -100px; }
+
+        /* ── Top Navbar ──────────────────────────────────────── */
+        .auth-nav {
+            position: relative; z-index: 10;
+            padding: 18px 0;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: saturate(180%) blur(18px);
+            -webkit-backdrop-filter: saturate(180%) blur(18px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+        }
+        .auth-nav .inner {
+            max-width: 1280px; margin: 0 auto; padding: 0 32px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .auth-brand {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none; color: #0f172a;
+            font-weight: 800; font-size: 1.25rem;
+        }
+        .auth-brand .logo-square {
+            width: 36px; height: 36px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #f97316, #fb923c);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 22px rgba(249,115,22,0.35);
+            color: white; font-size: 1.05rem;
+        }
+        .back-link {
+            color: #475569; text-decoration: none;
+            font-size: 0.86rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(226,232,240,0.85);
+            border-radius: 999px;
+            transition: all 0.2s;
+        }
+        .back-link:hover {
+            color: #f97316;
+            background: white;
+            border-color: rgba(249,115,22,0.30);
+        }
+
+        /* ── Main grid ──────────────────────────────────────── */
+        .auth-body {
+            flex: 1; position: relative; z-index: 2;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 60px;
+            max-width: 1180px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 60px 32px 40px;
+            align-items: center;
+        }
+
+        /* ── Left marketing ─────────────────────────────────── */
+        .pre-title {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(226,232,240,0.9);
+            border-radius: 999px;
+            color: #475569;
+            font-size: 0.74rem; font-weight: 700;
+            margin-bottom: 22px; letter-spacing: 0.5px; text-transform: uppercase;
+            box-shadow: 0 4px 14px rgba(15,23,42,0.06);
+        }
+        .pre-title .pulse {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #f97316;
+            box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+            70%  { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+        .auth-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800; letter-spacing: -0.025em;
+            line-height: 1.12;
+            margin: 0 0 18px;
+            color: #0f172a;
+        }
+        .auth-title .grad {
+            background: linear-gradient(135deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-sub {
+            font-size: 1rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 32px;
+            max-width: 460px;
+        }
+        .feature-list { display: flex; flex-direction: column; gap: 12px; }
+        .feature-list > div {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226,232,240,0.85);
+            border-radius: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .feature-list > div:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(15,23,42,0.06);
+        }
+        .feature-list .ic {
+            width: 40px; height: 40px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0; color: white;
+        }
+        .feature-list .ic.b1 { background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 6px 14px rgba(249,115,22,0.35); }
+        .feature-list .ic.b2 { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 6px 14px rgba(59,130,246,0.35); }
+        .feature-list .ic.b3 { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 14px rgba(16,185,129,0.35); }
+        .feature-list .tx { font-size: 0.88rem; color: #475569; line-height: 1.4; }
+        .feature-list .tx b { color: #0f172a; display: block; font-weight: 700; margin-bottom: 2px; }
+
+        /* ── Right glass card ───────────────────────────────── */
+        .auth-right { display: flex; justify-content: center; }
+        .auth-card {
+            width: 100%; max-width: 440px;
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.85);
+            border-radius: 24px;
+            padding: 38px 34px 32px;
+            box-shadow:
+                0 24px 50px -10px rgba(15,23,42,0.12),
+                0 4px 12px rgba(15,23,42,0.04);
+            position: relative;
+            overflow: hidden;
+            animation: cardIn 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-head { text-align: center; margin-bottom: 26px; position: relative; }
+        .card-head .badge-icon {
+            width: 64px; height: 64px;
+            margin: 0 auto 14px;
+            border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: white;
+            box-shadow:
+                0 14px 28px rgba(15,23,42,0.45),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+        }
+        .card-head .badge-icon::after {
+            content: '';
+            position: absolute; bottom: -3px; right: -3px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316, #fb923c);
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(249,115,22,0.5);
+        }
+        .card-head h4 {
+            font-size: 1.45rem; font-weight: 800; color: #0f172a;
+            margin: 0 0 6px; letter-spacing: -0.01em;
+        }
+        .card-head p {
+            font-size: 0.88rem; color: #64748b;
+            margin: 0;
+        }
+
+        /* Form fields */
+        .field-block { margin-bottom: 18px; position: relative; }
+        .field-label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .input-shell {
+            position: relative;
+            display: flex; align-items: center;
+            background: rgba(248,250,252,0.85);
+            border: 1.5px solid rgba(226,232,240,0.85);
+            border-radius: 12px;
+            transition: all 0.2s;
+            padding: 0 14px;
+        }
+        .input-shell:focus-within {
+            background: white;
+            border-color: rgba(249,115,22,0.55);
+            box-shadow: 0 0 0 4px rgba(249,115,22,0.12);
+        }
+        .input-shell i {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .input-shell:focus-within i { color: #f97316; }
+        .input-shell input {
+            flex: 1;
+            background: transparent;
+            border: 0; outline: 0;
+            color: #0f172a;
+            padding: 13px 0;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .input-shell input::placeholder { color: #94a3b8; }
+        .pw-toggle {
+            background: transparent; border: 0; color: #94a3b8;
+            cursor: pointer; padding: 4px 0 4px 8px;
+            font-size: 1rem; transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: #f97316; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 0;
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-top: 8px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow:
+                0 10px 24px rgba(15,23,42,0.30),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            transform: translateY(-2px);
+            box-shadow:
+                0 16px 32px rgba(15,23,42,0.40),
+                inset 0 1px 0 rgba(255,255,255,0.20);
+        }
+        .btn-submit:active { transform: translateY(0); }
+
+        .info-tip {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-top: 18px;
+            font-size: 0.83rem;
+            color: #3730a3;
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+        .info-tip i { color: #6366f1; flex-shrink: 0; margin-top: 2px; }
+        .info-tip b { color: #312e81; }
+
+        .alert-glass {
+            background: rgba(254, 226, 226, 0.85);
+            border: 1px solid rgba(248, 113, 113, 0.45);
+            color: #991b1b;
+            border-radius: 12px;
+            padding: 11px 14px;
+            margin-bottom: 18px;
+            font-size: 0.86rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .alert-glass i { color: #dc2626; }
+
+        @media (max-width: 920px) {
+            .auth-body { grid-template-columns: 1fr; gap: 32px; padding: 40px 22px; }
+            .feature-list { max-width: 460px; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <nav class="auth-nav">
+        <div class="inner">
+            <a href="/" class="auth-brand">
+                <div class="logo-square"><i class="bi bi-lightning-charge-fill"></i></div>
+                <span>TalentHire</span>
+            </a>
+            <a href="/" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </nav>
+
+    <div class="auth-body">
+        <div>
+            <span class="pre-title">
+                <span class="pulse"></span>
+                Admin Portal
+            </span>
+            <h1 class="auth-title">Manage everything from <span class="grad">one place</span></h1>
+            <p class="auth-sub">
+                Sign in with your admin credentials to schedule exams, manage candidates and questions,
+                publish results, and monitor performance in real-time.
+            </p>
+
+            <div class="feature-list">
+                <div>
+                    <div class="ic b1"><i class="bi bi-mortarboard-fill"></i></div>
+                    <div class="tx"><b>Exam scheduling</b>Configure timing, scoring and visibility per exam</div>
+                </div>
+                <div>
+                    <div class="ic b2"><i class="bi bi-people-fill"></i></div>
+                    <div class="tx"><b>Candidate management</b>Bulk import, multi-select, status tracking</div>
+                </div>
+                <div>
+                    <div class="ic b3"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="tx"><b>Live analytics</b>Selection rate, attempts and subject distribution</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-right">
+            <div class="auth-card">
+                <div class="card-head">
+                    <div class="badge-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                    <h4>Admin Sign In</h4>
+                    <p>Restricted to authorized staff only</p>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert-glass">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" autocomplete="off">
+                    {% csrf_token %}
+
+                    <div class="field-block">
+                        <label class="field-label" for="user-input">Username</label>
+                        <div class="input-shell">
+                            <i class="bi bi-person-fill"></i>
+                            <input id="user-input" type="text" name="username"
+                                   placeholder="Admin username" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="field-block">
+                        <label class="field-label" for="pw-input">Password</label>
+                        <div class="input-shell">
+                            <i class="bi bi-lock-fill"></i>
+                            <input id="pw-input" type="password" name="password"
+                                   placeholder="Your password" required>
+                            <button type="button" class="pw-toggle" onclick="togglePw()" tabindex="-1" aria-label="Show password">
+                                <i class="bi bi-eye" id="pw-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Sign In to Admin Portal
+                    </button>
+                </form>
+
+                <div class="info-tip">
+                    <i class="bi bi-shield-fill-check"></i>
+                    <div>
+                        <b>Secure access:</b> Only staff users can log in. Contact your system
+                        administrator if you don't have credentials.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function togglePw() {
+        const inp = document.getElementById('pw-input');
+        const icon = document.getElementById('pw-icon');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            inp.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+    </script>
+</body>
+</html>
